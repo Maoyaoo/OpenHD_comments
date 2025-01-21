@@ -102,6 +102,11 @@ openhd::log::MavlinkLogMessageBuffer::instance() {
   return singleton;
 }
 
+
+
+/* 确保在多线程环境下，针对同一个日志记录器的操作是线程安全的。
+如果日志记录器已经存在，则返回已有的日志记录器；
+如果不存在，则创建一个新的日志记录器，设置它的级别和接收器，并返回该记录器。 */
 std::shared_ptr<spdlog::logger> openhd::log::create_or_get(
     const std::string& logger_name) {
   static std::mutex logger_mutex2{};

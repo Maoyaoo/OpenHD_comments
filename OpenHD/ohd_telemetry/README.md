@@ -75,3 +75,42 @@ arises from the necessity to route the messages over another network. For this, 
 TCPEndpoint still needs some work. The corresponding endpoint in QOpenHD can be found
 here: https://github.com/OpenHD/QOpenHD/blob/consti-test/app/telemetry/OHDConnection.h
 
+# 开发者信息
+## 总结：
+本模块处理所有（Mavlink）遥测数据，包括用于更改设置的 Mavlink 扩展参数协议。
+## 端点
+端点（位于 src/endpoints 目录下）接收和 / 或传输连续的 Mavlink 数据流。我们有以下几种端点：
+1、串口 - 飞控与 [空中单元] 以及 [地面单元] 与追踪器之间的 UART 连接。
+2、wifibroadcast - 用于通过 wifibroadcast 链路（由 ohd_interface 提供）传输遥测数据。
+3、UDP - 地面单元上 openhd 与 qopenhd 之间的连接，优先使用。
+4、TCP - 用于在地面 / 空中创建 Mavlink 服务器，也可供地面控制站（GCS）使用，虽非首选，但在某些网络场景中很有用。
+## OHDMainComponent（组件）
+空中单元和地面单元的实现均会使用，生成即发即弃的 Mavlink 统计信息。
+## XMavlinkParamProvider（组件）
+这个组件有点取巧，它使用 Mavlink 扩展参数协议来公开特定 OpenHD 组件（空中单元、地面单元、相机 1、相机 2）的设置。
+## AirTelemetry/GroundTelemetry
+通过回调函数传递所有 Mavlink 消息，为其他模块提供注册 Mavlink 扩展参数设置的功能（例如，相机 1 将其所有设置提供给 AirTelemetry，然后通过回调函数接收设置更改的通知）。
+## OHDTelemetry
+封装 AirTelemetry 或 GroundTelemetry 实例。
+# 注意
+这里的代码比预期的要复杂得多，例如路由就相当困难。不过，在集成开发环境（IDE）中，通过跟踪回调函数，你应该能够轻松跟踪数据流。
+## 前提条件
+空中/地面单元遥测数据的传输/接收与本模块是分离的。我们只是从 ohd_interface 提供的遥测数据句柄转发/获取遥测数据（最终，数据通过 wifibroadcast 发送 / 接收）。请注意，此连接是有损的 - 我们使用 Mavlink 提供的功能，确保在需要时进行重传。
+## 路由
+路由：我建议先阅读此内容：https://github.com/mavlink-router/mavlink-router
+特殊的 OpenHD 方法（总体而言，这些方法有助于我们节省带宽，避免将消息转发给不需要的系统）：
+1）即发即弃：只要有可能，我们就使用即发即弃消息。空中单元生成的任何 OpenHD 统计信息/遥测数据都会转发到地面单元，然后地面单元再将其转发到任何连接的地面站。
+地面单元生成的任何 OpenHD 统计信息/遥测数据不会转发到空中单元（以节省带宽），而仅转发到所有连接的地面站。
+2）飞控（FC）：OpenHD 提供对飞控的直接访问，但自身不以任何方式修改/使用来自飞控的数据。飞控（连接到空中单元）创建的消息会转发到地面单元，然后转发到地面站。
+地面站创建的任何消息会转发到空中单元，然后转发到飞控。
+3）设置：OpenHD 设置可以通过 Mavlink 扩展参数协议进行修改。这些设置根据需要，分别在空气或地面单元本地生效。
+## 系统 / 组件 ID
+本模块声明了两个 Mavlink 系统 ID - 一个用于空中单元，一个用于地面单元。相机有其自己的组件 ID，其余部分使用相同的组件 ID。
+## 处理命令
+命令可以发送到空中或地面单元（目标组件 / 系统 ID）。例如：
+https://github.com/OpenHD/OpenHD/blob/2.2.4 - evo/OpenHD/ohd_telemetry/src/internal/OHDMainComponent.cpp#L66
+## 外部（硬件）系统
+如果启用，空中单元从飞控发送 / 接收数据，地面单元从操纵杆（如果启用，RC）接收数据。
+## 将地面站应用程序连接到在地面 Pi 上运行的本模块（QOpenHD 或 QGroundControl）
+目前，将 QOpenHD 或 QGroundControl 连接到在地面 Pi 上运行的本模块只有一种方法 - 由两个 UDP 端口组成的双向连接。待办事项：当 QOpenHD / QGroundControl 不是在地面站本身运行，而是在另一个设备（例如连接到地面 Pi 的智能手机）上运行时，由于需要通过另一个网络路由消息，会出现另一个难题。为此，我们可能应该使用 TCP，但 TCPEndpoint 仍需要一些工作。QOpenHD 中相应的端点可在此处找到：
+https://github.com/OpenHD/QOpenHD/blob/consti - test/app/telemetry/OHDConnection.h

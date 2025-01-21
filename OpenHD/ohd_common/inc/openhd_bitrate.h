@@ -33,6 +33,8 @@
 // around. Therefore, we have the conversions here globally, and it is
 // recommended to use them instead of manually converting bit-rates by
 // multiplication / division somewhere in code.
+// 注意：我不完全确定，但更常见的做法似乎是通过乘以/除以 1000 来转换 mBit/s 到 kBit/s 或反向转换。
+// 因此，我们在这里提供了全局的转换，建议使用这些转换，而不是在代码中的其他地方手动通过乘法/除法来转换比特率。
 namespace openhd {
 static int kbits_to_bits_per_second(int kbits_per_second) {
   return kbits_per_second * 1000;
@@ -56,6 +58,8 @@ static std::string kbits_per_second_to_string(uint64_t kbits_per_second) {
 static std::string bytes_per_second_to_string(double bytes_per_second);
 static std::string pps_to_string(double pps);
 
+
+//主要用于调试比特率（bitrate）和数据包速率（packets per second，pps）的类 BitrateDebugger
 class BitrateDebugger {
  public:
   explicit BitrateDebugger(std::string tag, bool debug_pps = false);

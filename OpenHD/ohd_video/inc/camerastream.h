@@ -53,6 +53,23 @@
  * this is done by the link implementation - here we only generate encoded data
  * and packetize it into rtp fragments, then forward it.
  */
+
+/**
+ * 每个摄像头流都应继承自此类。
+ * 该类隐藏了底层实现（例如 GStreamer 等）对不同平台的支持。
+ * 开发者在使用每个摄像头流时应遵循的基本准则是：
+ * 1) 一旦实例化，它将开始生成视频数据，数据已经编码并根据链接的 MTU
+ * 进行分包。RTP 必须用于分包（至少现在是如此）。 2)
+ * 如果摄像头断开连接或底层进程崩溃（无论是什么原因），底层实现应重新启动摄像头和编码过程。
+ * 3)
+ * 如果用户更改摄像头参数，应该将这些更改本地保存（确保下次重启后也能恢复这些更改），并应用这些更改。重新启动底层摄像头/编码过程并应用新参数是没有问题的。
+ * 4) 实现应处理摄像头之间在支持与不支持参数上的差异。
+ *
+ * 在 OpenHD
+ * 中，视频流始终是单向的并且是有损的（FEC）。然而，这部分由链接实现处理——在这里，我们只生成已编码的数据并将其打包成
+ * RTP 数据包，然后转发。
+ */
+
 class CameraStream {
  public:
   /**
@@ -64,6 +81,14 @@ class CameraStream {
    * @param i_transmit abstract interface where encoded video data is forwarded
    * to (was UDP port previously)
    */
+  /**
+   * 在构造摄像头流后，直到调用 setup() 和 start()
+   * 方法之前，摄像头流不会开始传输。
+   * @param platform 当前运行的设备平台
+   * @param camera_holder 用于创建流的摄像头，camera_holder
+   * 提供对摄像头（功能）和设置的访问。
+   * @param i_transmit 编码后的视频数据转发的抽象接口（以前是 UDP 端口）
+   */
   CameraStream(std::shared_ptr<CameraHolder> camera_holder,
                openhd::ON_ENCODE_FRAME_CB out_cb);
   CameraStream(const CameraStream&) = delete;
@@ -73,21 +98,36 @@ class CameraStream {
   // video data) as soon as possible terminate_loping() is called when openhd
   // terminates (only for development) The camera is responsible to implement
   // its loop thread such that it can react to setting changes
+  // 在调用 start_looping() 后，摄像头应尽快开始流式传输（生成视频数据）
+  // terminate_loping() 在 OpenHD 终止时调用（仅用于开发）
+  // 摄像头负责实现其循环线程，以便能够响应设置的更改
   virtual void start_looping() = 0;
   virtual void terminate_looping() = 0;
+
   /**
    * Handle a change in the bitrate, most likely requested by the RF link.
    * This is the only value an implementation should support changing without a
    * complete restart of the pipeline / stream. It is okay to not implement this
    * interface method properly, e.g leave it empty.
    */
+  /**
+   * 处理比特率的变化，这通常是由 RF 链路请求的。
+   * 这是实现应该支持的唯一无需完全重启管道/流的变化值。
+   * 可以不正确实现此接口方法，例如可以留空。
+   */
   virtual void handle_change_bitrate_request(
       openhd::LinkActionHandler::LinkBitrateInformation lb) = 0;
+
   /**
    * Handle a change in the arming state
    * We have air video recording depending on the arming state, but the setting
    * and implementation is camera specific. It is okay to not implement this
    * interface method properly, e.g leave it empty.
+   */
+  /**
+   * 处理武装状态的变化
+   * 我们根据武装状态进行空中视频录制，但该设置和实现是特定于摄像头的。
+   * 可以不正确实现此接口方法，例如可以留空。
    */
   virtual void handle_update_arming_state(bool armed) = 0;
 

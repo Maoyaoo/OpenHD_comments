@@ -31,6 +31,12 @@
 # Arguments: run with 'f' to fix things (otherwise, default, only check and report
 # error if clang-format finds any issues
 
+#penHD 代码风格检查（基于 clang-format）
+#执行步骤：
+#步骤 1：生成本项目所有.cpp/.h/.hpp 文件的列表（不包括子目录）
+#步骤 2：运行 clang-format 工具
+#参数说明：使用参数 “f” 可自动修复代码风格问题（否则，默认仅进行检查，若 clang-format 发现任何问题则报告错误）
+
 function append_all_sources_headers() {
     # We use .h, .cpp and .hpp in OpenHD
     TMP_FILE_LIST="$(find "$1" | grep -E ".*(\.cpp|\.h|\.hpp)$")"

@@ -46,10 +46,15 @@ openhd::UDPForwarder::UDPForwarder(std::string client_addr1,
     get_console()->warn(message.str());
   }
   // set up the destination
+  // 配置目标地址
   bzero((char *)&saddr, sizeof(saddr));
+
+  // 设置地址族为 IPv4。
   saddr.sin_family = AF_INET;
   // saddr.sin_addr.s_addr = inet_addr(client_addr.c_str());
+  // 将字符串形式的 IP 地址（client_addr）转换为网络字节顺序的二进制形式，并存储在 saddr.sin_addr.s_addr 中
   inet_aton(client_addr.c_str(), (in_addr *)&saddr.sin_addr.s_addr);
+  // 将主机字节序的端口号转换为网络字节序。因为网络通信中的端口号需要使用大端字节序（network byte order）。
   saddr.sin_port = htons((uint16_t)client_udp_port);
   get_console()->info("UDPForwarder::configured for {} {}", client_addr,
                       client_udp_port);

@@ -38,9 +38,10 @@
 // Holds the immutable (camera) and mutable (camera_settings) information about
 // a camera. Changes in the camera
 // settings are propagated through this class.
-class CameraHolder :
-    // persistence via JSON
-    public openhd::PersistentSettings<CameraSettings> {
+// 持有有关摄像头的不可变（摄像头）和可变（摄像头设置）信息。
+// 摄像头设置的变化会通过此类进行传播。
+class CameraHolder : public openhd::PersistentSettings<CameraSettings>     // persistence via JSON // 通过 JSON 实现持久化
+{
  public:
   explicit CameraHolder(XCamera camera)
       : m_camera(std::move(camera)),
@@ -49,9 +50,14 @@ class CameraHolder :
     // read previous settings or create default ones
     init();
   }
+
   [[nodiscard]] const XCamera& get_camera() const { return m_camera; }
+
+  // 设置的临时解决方案开始
   // Settings hacky begin
-  std::vector<openhd::Setting> get_all_settings();
+
+  std::vector<openhd::Setting> get_all_settings(); //获取所有的设置
+
   bool set_enable_streaming(int enable) {
     if (!openhd::validate_yes_or_no(enable)) return false;
     unsafe_get_settings().enable_streaming = static_cast<bool>(enable);
@@ -60,6 +66,7 @@ class CameraHolder :
   }
   // it is only possible to validate setting the video width,height and fps
   // if we do them together
+  // 只有同时设置视频宽度、高度和帧率时，才能验证它们。
   bool set_video_width_height_framerate(int width, int height, int framerate) {
     if (!openhd::validate_video_width_height_fps(width, height, framerate)) {
       return false;
@@ -70,6 +77,7 @@ class CameraHolder :
     persist();
     return true;
   }
+
   bool set_video_codec(int codec) {
     if (!openhd::validate_video_codec(codec)) {
       return false;
@@ -79,6 +87,7 @@ class CameraHolder :
     persist();
     return true;
   }
+
   bool set_video_bitrate(int bitrate_mbits) {
     if (!openhd::validate_bitrate_mbits(bitrate_mbits)) {
       return false;
@@ -88,6 +97,7 @@ class CameraHolder :
     persist();
     return true;
   }
+
   bool set_air_recording(int recording_enable);
   // EXTRA - sets the air recording param to disabled when we run out of space -
   // this should be called in regular intervals

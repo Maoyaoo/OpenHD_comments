@@ -349,13 +349,15 @@ static int get_num_usb_cameras(const int primary_camera_type,
   return num_usb_cameras;
 }
 #endif
-std::vector<XCamera> OHDVideoAir::discover_cameras() {
-  auto platform = OHDPlatform::instance();
-  auto global_settings_holder =
-      std::make_unique<AirCameraGenericSettingsHolder>();
-  auto global_settings = global_settings_holder->get_settings();
-  auto console = openhd::log::get_default();
 
+std::vector<XCamera> OHDVideoAir::discover_cameras() {
+  auto platform = OHDPlatform::instance();  // 获取当前平台类型
+  auto global_settings_holder =
+      std::make_unique<AirCameraGenericSettingsHolder>();  // 创建默认相机配置
+  auto global_settings = global_settings_holder->get_settings();  // 获取配置
+  auto console = openhd::log::get_default();  // 获取日志记录器
+
+  // 获取活跃的相机数
   const int num_active_cameras =
       global_settings.secondary_camera_type == X_CAM_TYPE_DISABLED ? 1 : 2;
   std::vector<int> usb_cam_bus_names;
@@ -368,17 +370,19 @@ std::vector<XCamera> OHDVideoAir::discover_cameras() {
     usb_cam_bus_names = x_discover_usb_cameras(num_usb_cameras);
   }
 #endif
+
+  // 获取所有相机的类型和id
   std::vector<XCamera> ret;
   int usb_cameras_offset = 0;
   for (int i = 0; i < num_active_cameras; i++) {
     auto cam_type = i == 0 ? global_settings.primary_camera_type
                            : global_settings.secondary_camera_type;
     if (is_usb_camera(cam_type)) {
-      ret.push_back(
-          XCamera{cam_type, i, usb_cam_bus_names[usb_cameras_offset]});
+      ret.push_back(XCamera{cam_type, i,
+                            usb_cam_bus_names[usb_cameras_offset]});  // usb相机
       usb_cameras_offset++;
     } else {
-      ret.push_back(XCamera{cam_type, i, 0});
+      ret.push_back(XCamera{cam_type, i, 0});  // csi相机
     }
   }
   return ret;

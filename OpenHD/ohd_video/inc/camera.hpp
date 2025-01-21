@@ -37,27 +37,41 @@
  * NOTE: This file is copied into QOpenHD to populate the UI.
  */
 
-// For development, always 'works' since fully emulated in SW.
+// For development, always 'works' since fully emulated in
+// SW.对于开发来说，始终“有效”，因为完全在软件中模拟。
 static constexpr int X_CAM_TYPE_DUMMY_SW = 0;  // Dummy sw picture
+
 // Manually feed camera data (encoded,rtp) to openhd. Bitrate control and more
 // is not working in this mode, making it only valid for development and in
 // extreme cases valid for users that want to use a specific ip camera.
+// 手动将摄像头数据（编码的 RTP 数据）输入到
+// OpenHD。在此模式下，比特率控制等功能无法使用，因此仅适用于开发，
+// 在极端情况下适用于希望使用特定 IP 摄像头的用户。
 static constexpr int X_CAM_TYPE_EXTERNAL = 2;
+
 // For openhd, this is exactly the same as X_CAM_TYPE_EXTERNAL - only file
 // start_ip_cam.txt is created Such that the ip cam service can start forwarding
 // data to openhd core.
+// 对于 OpenHD，这与 X_CAM_TYPE_EXTERNAL 完全相同 - 仅创建文件
+// start_ip_cam.txt，以便 IP 摄像头服务可以开始将数据转发到 OpenHD 核心。
 static constexpr int X_CAM_TYPE_EXTERNAL_IP = 3;
+
 // For development, camera that reads input from a file, and then re-encodes it
 // using the platform encoder
+// 对于开发，摄像头从文件读取输入，然后使用平台编码器重新编码它。
 static constexpr int X_CAM_TYPE_DEVELOPMENT_FILESRC = 4;
 // ... reserved for development / custom cameras
 
 // OpenHD supports any usb camera outputting raw video (with sw encoding).
 // H264 usb cameras are not supported, since in general, they do not support
 // changing bitrate/ encoding parameters.
+// OpenHD 支持任何输出原始视频的 USB 摄像头（使用软件编码）。
+// 不支持 H264 USB 摄像头，因为一般情况下，它们不支持更改比特率/编码参数。
 static constexpr int X_CAM_TYPE_USB_GENERIC = 10;
+
 // 384x292@25 cam
 static constexpr int X_CAM_TYPE_USB_INFIRAY = 11;
+
 // 256x192@25 but only 0x0@0 works (urghs)
 static constexpr int X_CAM_TYPE_USB_INFIRAY_T2 = 12;
 static constexpr int X_CAM_TYPE_USB_INFIRAY_X2 = 13;
@@ -69,16 +83,19 @@ static constexpr int X_CAM_TYPE_USB_FLIR_BOSON = 16;
 // RPI Specific starts here
 //
 // As of now, we have mmal only for the geekworm hdmi to csi adapter
+// 截至目前，我们只有 MMAL 支持 Geekworm HDMI 到 CSI 适配器。
 static constexpr int X_CAM_TYPE_RPI_MMAL_HDMI_TO_CSI = 20;
 // ... 9 reserved for future use
 // ...
 // RPIF stands for RPI Foundation (aka original rpi foundation cameras)
+// RPIF 代表 RPI 基金会（即原始的 RPI 基金会摄像头）。
 static constexpr int X_CAM_TYPE_RPI_LIBCAMERA_RPIF_V1_OV5647 = 30;
 static constexpr int X_CAM_TYPE_RPI_LIBCAMERA_RPIF_V2_IMX219 = 31;
 static constexpr int X_CAM_TYPE_RPI_LIBCAMERA_RPIF_V3_IMX708 = 32;
 static constexpr int X_CAM_TYPE_RPI_LIBCAMERA_RPIF_HQ_IMX477 = 33;
 // .... 5 reserved for future use
 // Now to all the rpi libcamera arducam cameras
+// 现在包括所有的 RPI libcamera Arducam 摄像头。
 static constexpr int X_CAM_TYPE_RPI_LIBCAMERA_ARDUCAM_SKYMASTERHDR_IMX708 = 40;
 static constexpr int X_CAM_TYPE_RPI_LIBCAMERA_ARDUCAM_SKYVISIONPRO_IMX519 = 41;
 static constexpr int X_CAM_TYPE_RPI_LIBCAMERA_ARDUCAM_IMX477M = 42;
@@ -98,6 +115,9 @@ static constexpr int X_CAM_TYPE_RPI_V4L2_VEYE_MVCAM = 63;
 // Right now we only have one camera, but more (might) follow.
 // Generic - camera(s) that don't support any IQ params or changing settings.
 // For example the Foxeer cameras, or old runcam cameras
+// 目前我们只有一台摄像头，但可能会有更多摄像头添加。
+// 通用摄像头 - 不支持任何 IQ 参数或更改设置的摄像头。
+// 例如 Foxeer 摄像头或旧款 runcam 摄像头。
 static constexpr int X_CAM_TYPE_X20_HDZERO_GENERIC = 70;
 static constexpr int X_CAM_TYPE_X20_HDZERO_RUNCAM_V1 = 71;
 static constexpr int X_CAM_TYPE_X20_HDZERO_RUNCAM_V2 = 72;
@@ -139,6 +159,9 @@ static constexpr int X_CAM_TYPE_QC_OV9282 = 121;
 // ... rest is reserved for future use
 // no camera, only exists to have a default value for secondary camera (which is
 // disabled by default). NOTE: The primary camera cannot be disabled !
+// ... 其余部分保留以备将来使用
+// 无摄像头，仅用于为副摄像头（默认禁用）提供默认值。
+// 注意：主摄像头不能禁用！
 static constexpr int X_CAM_TYPE_DISABLED = 255;  // Max for uint8_t
 
 static std::string x_cam_type_to_string(int camera_type) {
@@ -275,11 +298,16 @@ struct ResolutionFramerate {
 
 struct XCamera {
   int camera_type = X_CAM_TYPE_DUMMY_SW;
+
   // 0 for primary camera, 1 for secondary camera
   int index;
+
   // Only valid if camera is of type USB
   // For CSI camera(s) we in general 'know' from platform and cam type how to
   // tell the pipeline which cam/source to use.
+  // /仅在摄像头类型为 USB 时有效
+  // 对于 CSI
+  // 摄像头，我们通常可以根据平台和摄像头类型来“知道”如何告诉管道使用哪个摄像头/源。
   int usb_v4l2_device_number;
   bool requires_rpi_mmal_pipeline() const {
     return camera_type == X_CAM_TYPE_RPI_MMAL_HDMI_TO_CSI;
@@ -314,12 +342,18 @@ struct XCamera {
            camera_type == X_CAM_TYPE_USB_FLIR_BOSON ||
            camera_type == X_CAM_TYPE_USB_INFIRAY_X2;
   };
+
   // Returns a list of known supported resolution(s).
   // They should be ordered in ascending resolution / framerate
   // Must always return at least one resolution
   // Might not return all resolutions a camera supports per HW
   // (In qopenhd, we have the experiment checkbox, where the user can enter
   // anything he likes)
+  // 返回已知支持的分辨率列表。
+  // 它们应按分辨率/帧率升序排列
+  // 必须始终返回至少一个分辨率
+  // 可能不会返回摄像头硬件支持的所有分辨率
+  // （在 qopenhd 中，我们有实验复选框，用户可以输入任何他们喜欢的内容）
   std::vector<ResolutionFramerate> get_supported_resolutions() const {
     if (requires_rpi_veye_pipeline()) {
       // Except one, all veye camera(s) only do 1080p30 -
@@ -585,6 +619,7 @@ static bool is_valid_secondary_cam_type(int cam_type) {
 }
 // Takes a string in the from {width}x{height}@{framerate}
 // e.g. 1280x720@30
+// 它的作用是解析一个视频格式字符串，并返回一个 ResolutionFramerate 对象，包含解析出来的宽度、高度和帧率
 static std::optional<ResolutionFramerate> parse_video_format(
     const std::string& videoFormat) {
   // 0x0@0 is a valid resolution (omit resolution / fps in the pipeline)
@@ -594,8 +629,10 @@ static std::optional<ResolutionFramerate> parse_video_format(
     return std::nullopt;
   }
   ResolutionFramerate tmp_video_format{0, 0, 0};
+  // 定义一个正则表达式 reg，用于匹配视频格式字符串。正则表达式 (\d*)x(\d*)\@(\d*) 用来捕获格式如 1280x720@30 的字符串，
   const std::regex reg{R"((\d*)x(\d*)\@(\d*))"};
   std::smatch result;
+  // 使用 std::regex_search 函数检查 videoFormat 是否匹配正则表达式 reg，如果匹配成功，结果会存储在 result 中。
   if (std::regex_search(videoFormat, result, reg)) {
     if (result.size() == 4) {
       // openhd::log::get_default()->debug("result[0]=["+result[0].str()+"]");

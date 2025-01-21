@@ -236,6 +236,8 @@ std::string OHDUtil::create_command_with_args(
   return ss.str();
 }
 
+
+// 这个函数的作用是判断当前运行的程序是否是以 root 用户身份执行，并在调试模式下输出相关信息。
 bool OHDUtil::check_root(const bool print_debug) {
   const auto uid = getuid();
   const bool root = uid ? false : true;
@@ -246,6 +248,7 @@ bool OHDUtil::check_root(const bool print_debug) {
   return root;
 }
 
+//如果不是root用户权限执行，直接退出
 void OHDUtil::terminate_if_not_root() {
   if (!check_root(false)) {
     openhd::log::get_default()->error(

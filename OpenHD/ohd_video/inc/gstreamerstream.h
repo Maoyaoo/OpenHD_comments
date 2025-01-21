@@ -48,6 +48,10 @@
 // you can just test the pipeline(s) manually using gst-launch and add settings
 // and more this way) but you are encouraged to use other approach(es) if they
 // better fit your needs (see CameraStream.h)
+// 使用 gstreamer 实现 OHD CameraStream，几乎适用于所有情况。 
+// 注意：我们在这里所做的基本上是创建一个大的 gstreamer 管道字符串，然后执行该管道。 
+// 这样做使得开发变得容易（因为你可以使用 gst-launch 手动测试管道，并通过这种方式添加设置等）， 
+// 但如果其他方法更适合你的需求，建议使用其他方法（参见 CameraStream.h）。
 class GStreamerStream : public CameraStream {
  public:
   GStreamerStream(std::shared_ptr<CameraHolder> camera_holder,

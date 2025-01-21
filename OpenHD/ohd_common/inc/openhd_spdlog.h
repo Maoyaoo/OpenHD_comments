@@ -28,6 +28,10 @@
 // specific logger(s) on a module basis such that we can enable / disable
 // logging for a specific module (e.g. ohd_video: set log level to debug / info)
 // when debugging ohd_video.
+// 目标是最终在所有 OpenHD 模块中使用 spdlog，但要在模块级别上使用
+// 特定的日志记录器，以便在调试特定模块时可以启用/禁用
+// 日志记录（例如，ohd_video：设置日志级别为调试/信息）
+// 当调试 ohd_video 时。
 
 #include <spdlog/fwd.h>
 // #include <spdlog/fmt/fmt.h>
@@ -44,17 +48,25 @@ namespace openhd::log {
 // Note: the _mt loggers have threadsafety by design already, but we need to
 // make sure to crete the instance only once For some reason there is no helper
 // for that in speeddlog / i haven't found it yet
+// 注意：_mt 日志记录器已经通过设计具备线程安全性，但我们需要确保
+// 只创建一次实例。由于某些原因，在 spdlog 中没有找到相关的帮助函数
+// （或者我还没有找到）。
 
 // Thread-safe but recommended to store result in an intermediate variable
+// 线程安全，但建议将结果存储在中间变量中。
 std::shared_ptr<spdlog::logger> create_or_get(const std::string& logger_name);
 
 // Uses the thread-safe create_or_get -> slower than using the intermediate
 // variable approach, but sometimes you just don't care about that.
+// 使用线程安全的 create_or_get -> 比使用中间变量方法慢，但有时你并不在乎这个。
 std::shared_ptr<spdlog::logger> get_default();
 
 // By default, only messages of level warn or higher are forwarded via mavlink
 // (and then shown in QOpenHD). Use this if you want to show a non-warning
 // message in QOpenHD.
+// 默认情况下，只有警告级别或更高的消息才会通过 mavlink 转发
+// （然后在 QOpenHD 中显示）。如果你想在 QOpenHD 中显示非警告
+// 消息，请使用此设置。
 void log_via_mavlink(int level, std::string message);
 
 struct MavlinkLogMessage {

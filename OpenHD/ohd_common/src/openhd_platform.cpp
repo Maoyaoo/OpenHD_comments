@@ -41,6 +41,7 @@ static constexpr auto ALLWINNER_BOARDID_PATH = "/dev/cedar_dev";
 static constexpr auto SIGMASTAR_BOARDID_PATH = "/dev/mstar_ive0";
 static constexpr auto QUALCOMM_BOARDID_PATH = "/proc/device-tree/model";
 
+//确认平台类型
 static int internal_discover_platform() {
   openhd::log::get_default()->warn("OpenHD Platform Discovery started!");
 
@@ -176,16 +177,16 @@ static int internal_discover_platform() {
   return X_PLATFORM_TYPE_UNKNOWN;
 }
 
+//写入平台信息
 static void write_platform_manifest(const OHDPlatform& ohdPlatform) {
-  static constexpr auto PLATFORM_MANIFEST_FILENAME =
-      "/tmp/platform_manifest.txt";
+  static constexpr auto PLATFORM_MANIFEST_FILENAME ="/tmp/platform_manifest.txt";
   OHDFilesystemUtil::write_file(PLATFORM_MANIFEST_FILENAME,
                                 ohdPlatform.to_string());
 }
 
 static OHDPlatform discover_and_write_manifest() {
-  auto platform_int = internal_discover_platform();
-  auto platform = OHDPlatform(platform_int);
+  auto platform_int = internal_discover_platform();//获得板子类型序号
+  auto platform = OHDPlatform(platform_int);//初始化板子类型
   write_platform_manifest(platform);
   return platform;
 }
@@ -229,6 +230,7 @@ std::string x_platform_type_to_string(int platform_type) {
   }
 }
 
+// 根据当前平台的类型，返回一个不同的最大 FEC 块大小。FEC（前向纠错）块大小的选择通常与硬件性能、带宽要求、计算能力等因素有关
 int get_fec_max_block_size_for_platform() {
   auto platform_type = OHDPlatform::instance().platform_type;
 

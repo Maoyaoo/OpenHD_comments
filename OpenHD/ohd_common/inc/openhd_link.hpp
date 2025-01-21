@@ -51,6 +51,19 @@
  *  In general, there should be exactly one instance of ohd_link on the air unit
  * and one on the ground unit.
  */
+/**OHDLink 指的是从空中单元到地面单元以及反向传输数据的“链接”。由于我们没有在
+ *ohd_interface 和其他模块之间的依赖关系，
+ *我们在这里松散地定义了一个接口（用于发送数据和注册接收数据的回调）。
+ *它隐藏了底层的实现（例如 wifibroadcast，也就是监控模式下的 WiFi 卡，或者 LTE
+ *等）。然而，目前唯一存在的实现是 wifibroadcast。为了集成 OpenHD 链接，
+ *必须支持以下内容：
+ *从空中到地面及反向发送遥测数据
+ *=> 1 个双向（即空对地和地对空）但（推荐）有损的链接（因为 mavlink
+ *处理数据包丢失/重传等） 从空中到地面发送视频数据，推荐有 2
+ *个实例（主视频和次视频），至少需要 1 个
+ *=> 2 个单向（推荐有损，但采用 FEC 保护）链接，用于主视频和次视频从空到地的传输
+ *一般来说，空中单元和地面单元各自应该有一个 ohd_link 实例。
+ */
 class OHDLink {
  public:
   typedef std::function<void(std::shared_ptr<std::vector<uint8_t>> data)>
@@ -153,6 +166,8 @@ class DummyDebugLink : public OHDLink {
   }
   // Called by the camera stream on the air unit only
   // transmit video data via wifibradcast
+  // 仅由空中单元上的摄像头流调用
+  // 通过 wifibroadcast 传输视频数据
   void transmit_video_data(
       int stream_index,
       const openhd::FragmentedVideoFrame& fragmented_video_frame) override {

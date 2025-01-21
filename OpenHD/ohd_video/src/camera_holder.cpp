@@ -60,8 +60,10 @@ std::string CameraHolder::imp_serialize(const CameraSettings &data) const {
 std::vector<openhd::Setting> CameraHolder::get_all_settings() {
   std::vector<openhd::Setting> ret;
   if (!OHDPlatform::instance().is_x20()) {
+    // 定义了一个 Lambda 函数，函数名为 c_width_height_framerate。（输入字符串，然后从字符串解析出配置值，然后设置配置）
+    // [this] 是捕获列表，表示 Lambda 函数可以访问当前对象的成员和方法
     auto c_width_height_framerate = [this](std::string, std::string value) {
-      auto tmp_opt = parse_video_format(value);
+      auto tmp_opt = parse_video_format(value);//获取视频格式（结构体）
       if (tmp_opt.has_value()) {
         const auto &tmp = tmp_opt.value();
         return set_video_width_height_framerate(tmp.width_px, tmp.height_px,
@@ -78,6 +80,7 @@ std::vector<openhd::Setting> CameraHolder::get_all_settings() {
         "RESOLUTION_FPS",
         openhd::StringSetting{format_string, c_width_height_framerate}});
   }
+
   if (!OHDPlatform::instance().is_x20()) {
     auto c_codec = [this](std::string, int value) {
       return set_video_codec(value);
@@ -88,9 +91,12 @@ std::vector<openhd::Setting> CameraHolder::get_all_settings() {
             video_codec_to_int(get_settings().streamed_video_format.videoCodec),
             c_codec}});
   }
+
   {
     // Supported by all cameras, since it has actually nothing to do with the
     // camera, only the link - but for the user, it is more of a camera setting
+    // 所有摄像头都支持此设置，因为它实际上与摄像头无关，
+    // 只与链接有关——但对于用户来说，它更像是一个摄像头设置。
     auto cb_encryption = [this](std::string, int value) {
       return set_encryption_enable(value);
     };
@@ -106,6 +112,7 @@ std::vector<openhd::Setting> CameraHolder::get_all_settings() {
       m_camera.requires_rockchip5_mpp_pipeline() ||
       m_camera.requires_rockchip3_mpp_pipeline() ||
       m_camera.camera_type == X_CAM_TYPE_DEVELOPMENT_FILESRC;
+  
   if (supports_rotation_vflip_hflip) {
     auto c_rotation = [this](std::string, int value) {
       return set_camera_rotation(value);

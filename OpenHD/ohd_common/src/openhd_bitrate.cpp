@@ -23,11 +23,14 @@
 
 #include "openhd_bitrate.h"
 
+// 构造函数接收一个标签 tag 和一个布尔值 debug_pps，并初始化成员变量。m_console 是用于日志记录的对象，m_debug_pps 用于控制是否调试数据包每秒（pps）。
 openhd::BitrateDebugger::BitrateDebugger(std::string tag, bool debug_pps)
     : m_debug_pps(debug_pps) {
   m_console = openhd::log::create_or_get(tag);
 }
 
+
+// 这个方法每当收到数据包时被调用。它会累计数据包大小并计算比特率（以字节/秒为单位）以及数据包每秒（pps）。如果一秒钟过去了，它会打印出这些信息，并重置计数器以便下一次计算。
 void openhd::BitrateDebugger::on_packet(int64_t n_bytes) {
   assert(n_bytes > 0);
   m_bytes += n_bytes;
@@ -52,6 +55,7 @@ void openhd::BitrateDebugger::on_packet(int64_t n_bytes) {
   }
 }
 
+// 此方法将比特率（以比特/秒为单位）转换为字符串形式，单位为 mBit/s 或 kBit/s，取决于值的大小。
 std::string openhd::bits_per_second_to_string(uint64_t bits_per_second) {
   const auto mBits_per_second =
       static_cast<double>(bits_per_second) / (1000.0 * 1000.0);
@@ -66,6 +70,7 @@ std::string openhd::bits_per_second_to_string(uint64_t bits_per_second) {
   return ss.str();
 }
 
+// 这个方法将字节数（以字节/秒为单位）转换为比特率字符串（单位为 mBit/s 或 kBit/s）。
 std::string openhd::bytes_per_second_to_string(double bytes_per_second) {
   const auto bits_per_second = bytes_per_second * 8;
   std::stringstream ss;
@@ -81,6 +86,7 @@ std::string openhd::bytes_per_second_to_string(double bytes_per_second) {
   return ss.str();
 }
 
+// 该方法将数据包每秒（pps）转换为字符串形式，单位为 pps
 std::string openhd::pps_to_string(double pps) {
   std::stringstream ss;
   ss.precision(2);

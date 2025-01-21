@@ -33,6 +33,8 @@
 
 extern AirCameraGenericSettings g_airCameraGenericSettings;
 
+//NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE 宏允许类 AirCameraGenericSettings 轻松地与 JSON 格式互相转换，不需要修改类的结构。
+// 通过这个宏，类的成员变量会自动映射到 JSON 对象的键，简化了序列化和反序列化的代码。
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(
     AirCameraGenericSettings, switch_primary_and_secondary,
     dualcam_primary_video_allocated_bandwidth_perc, primary_camera_type,
@@ -75,9 +77,11 @@ static int rpi_get_default_primary_cam_type() {
 AirCameraGenericSettings AirCameraGenericSettingsHolder::create_default()
     const {
   AirCameraGenericSettings ret{};
-  ret.primary_camera_type = X_CAM_TYPE_DUMMY_SW;
-  ret.secondary_camera_type = X_CAM_TYPE_DISABLED;
+  ret.primary_camera_type =
+      X_CAM_TYPE_DUMMY_SW;  // 初始化主摄像头为软件模拟的数据
+  ret.secondary_camera_type = X_CAM_TYPE_DISABLED;  // 禁用副摄像头
 
+  // 根据平台设置主摄像头类型
   if (OHDPlatform::instance().is_rpi()) {
     ret.primary_camera_type = rpi_get_default_primary_cam_type();
   } else if (OHDPlatform::instance().is_x20()) {
@@ -112,6 +116,8 @@ void AirCameraGenericSettingsHolder::x20_only_discover_and_save_camera_type() {
   // type. This is in contrast to pretty much any other platform (where we do
   // not have camera auto detection and therefore rely on the user setting the
   // camera)
+  // 在 X20 上，每次启动 OpenHD 时，我们都会（重新）检测摄像头类型。
+  // 这与几乎所有其他平台不同（在其他平台上我们没有摄像头自动检测，因此依赖用户设置摄像头）。
   unsafe_get_settings().primary_camera_type = openhd::x20::detect_camera_type();
   unsafe_get_settings().secondary_camera_type = X_CAM_TYPE_DISABLED;
   persist(false);
