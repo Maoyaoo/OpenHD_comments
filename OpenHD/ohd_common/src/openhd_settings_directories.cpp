@@ -30,50 +30,52 @@
 #include "openhd_spdlog_include.h"
 #include "openhd_util_filesystem.h"
 
+// 在设备首次启动或没有 Unit ID 时，生成并保存一个唯一的标识符。在设备重启或重新启动时，能从文件中恢复这个标识符，确保设备有一个持久的标识符。
+// 生成 Unit ID：可以通过 UUID（例如 Boost 库的 boost::uuids::random_generator）来生成唯一标识符，代码注释中提到了这一点。
 std::string openhd::getOrCreateUnitId() {
-  generateSettingsDirectoryIfNonExists();
-  auto unit_id_opt = OHDFilesystemUtil::opt_read_file(get_unit_id_file_path());
-  if (unit_id_opt.has_value()) {
-    std::string unit_id = unit_id_opt.value();
-    // openhd::log::get_default()->debug("Read unit id:{}",unit_id);
+    generateSettingsDirectoryIfNonExists();
+    auto unit_id_opt = OHDFilesystemUtil::opt_read_file(get_unit_id_file_path());
+    if (unit_id_opt.has_value()) {
+        std::string unit_id = unit_id_opt.value();
+        // openhd::log::get_default()->debug("Read unit id:{}",unit_id);
+        return unit_id;
+    }
+    // No unit id exists yet - create new one
+    // generate new unit id
+    // See https://www.boost.org/doc/libs/1_62_0/libs/uuid/uuid.html
+    // const boost::uuids::uuid _uuid = boost::uuids::random_generator()();
+    // unit_id = to_string(_uuid);
+    std::string unit_id = create_unit_it_temporary();
+    OHDFilesystemUtil::write_file(get_unit_id_file_path(), unit_id);
+    openhd::log::get_default()->info("Created new unit id:{}", unit_id);
     return unit_id;
-  }
-  // No unit id exists yet - create new one
-  // generate new unit id
-  // See https://www.boost.org/doc/libs/1_62_0/libs/uuid/uuid.html
-  // const boost::uuids::uuid _uuid = boost::uuids::random_generator()();
-  // unit_id = to_string(_uuid);
-  std::string unit_id = create_unit_it_temporary();
-  OHDFilesystemUtil::write_file(get_unit_id_file_path(), unit_id);
-  openhd::log::get_default()->info("Created new unit id:{}", unit_id);
-  return unit_id;
 }
 
+// 删除文件夹，再创建文件夹
 void openhd::clean_all_settings() {
-  openhd::log::get_default()->debug("clean_all_settings()");
-  OHDFilesystemUtil::safe_delete_directory(SETTINGS_BASE_PATH);
-  generateSettingsDirectoryIfNonExists();
+    openhd::log::get_default()->debug("clean_all_settings()");
+    OHDFilesystemUtil::safe_delete_directory(SETTINGS_BASE_PATH);
+    generateSettingsDirectoryIfNonExists();
 }
 
 void openhd::check_currently_running_file_and_write() {
-  if (OHDFilesystemUtil::exists(get_openhd_is_running_filename())) {
-    openhd::log::get_default()->warn("OpenHD started ditry!");
-  }
-  OHDFilesystemUtil::write_file(get_openhd_is_running_filename(), "dummy");
+    if (OHDFilesystemUtil::exists(get_openhd_is_running_filename())) {
+        openhd::log::get_default()->warn("OpenHD started ditry!");
+    }
+    OHDFilesystemUtil::write_file(get_openhd_is_running_filename(), "dummy");
 }
 
 void openhd::remove_currently_running_file() {
-  openhd::log::get_default()->debug(
-      "OpenHD terminating,removing is running file");
-  OHDFilesystemUtil::remove_if_existing(get_openhd_is_running_filename());
+    openhd::log::get_default()->debug("OpenHD terminating,removing is running file");
+    OHDFilesystemUtil::remove_if_existing(get_openhd_is_running_filename());
 }
 
 void openhd::generateSettingsDirectoryIfNonExists() {
-  if (!OHDFilesystemUtil::exists(SETTINGS_BASE_PATH)) {
-    OHDFilesystemUtil::create_directories(SETTINGS_BASE_PATH);
-  }
-  assert(OHDFilesystemUtil::exists(SETTINGS_BASE_PATH));
-  OHDFilesystemUtil::create_directories(get_interface_settings_directory());
-  OHDFilesystemUtil::create_directories(get_telemetry_settings_directory());
-  OHDFilesystemUtil::create_directories(get_video_settings_directory());
+    if (!OHDFilesystemUtil::exists(SETTINGS_BASE_PATH)) {
+        OHDFilesystemUtil::create_directories(SETTINGS_BASE_PATH);
+    }
+    assert(OHDFilesystemUtil::exists(SETTINGS_BASE_PATH));
+    OHDFilesystemUtil::create_directories(get_interface_settings_directory());
+    OHDFilesystemUtil::create_directories(get_telemetry_settings_directory());
+    OHDFilesystemUtil::create_directories(get_video_settings_directory());
 }

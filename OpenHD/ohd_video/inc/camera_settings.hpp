@@ -163,9 +163,10 @@ struct CameraSettings {
   // 摄像头旋转，目前仅在 rpicamsrc 上支持
   // 0 不旋转，90° 向右旋转，180° 向右旋转，270° 向右旋转
   int camera_rotation_degree = 0;
-  
+
   // horizontal / vertical flip, r.n only supported on rpicamsrc, libcamera,
   // (x20 ?)
+  // 水平/垂直翻转，当前仅在 rpicamsrc、libcamera（x20？）上支持
   int openhd_flip = OPENHD_FLIP_NONE;
 
   // Depending on the cam type, openhd uses hw-accelerated encoding whenever
@@ -174,9 +175,15 @@ struct CameraSettings {
   // (e.g. when using libcamera / rpicamsrc and RPI4) one might prefer to use SW
   // encode. Enabling this is no guarantee a sw encoded pipeline exists for this
   // camera.
+  // 根据摄像头类型，OpenHD 会尽可能使用硬件加速编码。
+  // 然而，在某些情况下（例如使用输出原始数据和 h264 的 USB 摄像头，
+  // 但摄像头的硬件编码器性能较差）或用于实验（例如使用 libcamera / rpicamsrc 和
+  // RPI4），
+  // 可能更希望使用软件编码。启用此选项并不保证该摄像头有可用的软件编码管道。
   bool force_sw_encode = false;
 
   // OpenHD WB supports changing encryption on the fly per camera stream
+  // OpenHD WB 支持在每个摄像头流上动态更改加密设置
   bool enable_ultra_secure_encryption = false;
 
   // -----------------------------------------------------------------------------------------------------------------------
@@ -187,10 +194,17 @@ struct CameraSettings {
   // prefixed with a vendor-specific string (for example lc_ ) are values that
   // cannot be generified and therefore need to be different for each camera.
   // default 100, range [0,200]
+  // IQ（图像质量）设置开始。以 openhd_ 为前缀的值是 OpenHD 定义的范围，
+  // 每个实现了给定功能的摄像头需要使用此范围（可以进行重新映射，例如
+  // openhd_brightness 被重新映射为 libcamera，它接受一个浮动值）。
+  // 以厂商特定字符串（例如 lc_）为前缀的值是无法通用的，因此
+  // 需要针对每个摄像头设置不同的值。
+  // 默认值为 100，范围为 [0,200]
   int openhd_brightness = OPENHD_BRIGHTNESS_DEFAULT;
   int openhd_saturation = OPENHD_SATURATION_DEFAULT;
   int openhd_contrast = OPENHD_CONTRAST_DEFAULT;
   int openhd_sharpness = OPENHD_SHARPNESS_DEFAULT;
+
   // libcamera params
   int rpi_libcamera_ev_value = RPI_LIBCAMERA_DEFAULT_EV;
   int rpi_libcamera_denoise_index = 0;
@@ -202,6 +216,9 @@ struct CameraSettings {
   // these are customizable settings
   // 34817 == black hot
   // actually not zoom
+  // 这些是可自定义的设置
+  // 34817 == 黑色热像
+  // 实际上不是缩放
   int infiray_custom_control_zoom_absolute_colorpalete = 34817;
 };
 
@@ -218,6 +235,7 @@ static bool requires_vflip(const CameraSettings& settings) {
     return true;
   return false;
 }
+
 // TODO - some platforms (only) flip, some platforms rotate the full range
 static int get_rotation_degree_0_90_180_270(const CameraSettings& settings) {
   if (settings.openhd_flip == OPENHD_FLIP_NONE) return 0;

@@ -34,40 +34,44 @@ namespace openhd {
  * Whether those LEDs exist or not depends on the hardware - here we abstract
  * that away.
  */
+/**
+ * OpenHD 使用 2 个 LED 灯（绿色和红色）来向用户显示状态。
+ * 这些 LED 是否存在取决于硬件 - 在这里我们将其抽象化处理。
+ */
 class LEDManager {
- public:
-  static LEDManager& instance();
-  static constexpr int STATUS_ON = 1;
-  static constexpr int STATUS_OFF = 0;
+   public:
+    static LEDManager& instance();
+    static constexpr int STATUS_ON = 1;
+    static constexpr int STATUS_OFF = 0;
 
-  void set_primary_led_status(int status);
-  void set_secondary_led_status(int status);
-  void set_status_stopped(int status);
+    void set_primary_led_status(int status);
+    void set_secondary_led_status(int status);
+    void set_status_stopped(int status);
 
-  // OpenHD is running and healthy
-  void set_status_okay();
-  // OpenHD is starting
-  void set_status_loading();
-  // OpenHD encountered an error
-  void set_status_error();
-  // OpenHD was closed
-  void set_status_stopped();
+    // OpenHD is running and healthy
+    void set_status_okay();
+    // OpenHD is starting
+    void set_status_loading();
+    // OpenHD encountered an error
+    void set_status_error();
+    // OpenHD was closed
+    void set_status_stopped();
 
- private:
-  LEDManager();
-  ~LEDManager();
+   private:
+    LEDManager();
+    ~LEDManager();
 
-  void start_loading_thread();
-  void stop_loading_thread();
-  void loading_loop();
-  void blink_okay();
-  void blink_loading();
-  void blink_error();
+    void start_loading_thread();
+    void stop_loading_thread();
+    void loading_loop();
+    void blink_okay();
+    void blink_loading();
+    void blink_error();
 
-  std::unique_ptr<std::thread> m_loading_thread;
-  std::atomic<bool> m_running;
-  std::atomic<bool> m_has_error;
-  std::atomic<bool> m_is_loading;
+    std::unique_ptr<std::thread> m_loading_thread;
+    std::atomic<bool> m_running;
+    std::atomic<bool> m_has_error;
+    std::atomic<bool> m_is_loading;
 };
 
 }  // namespace openhd

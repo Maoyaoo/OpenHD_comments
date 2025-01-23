@@ -32,17 +32,25 @@ namespace openhd {
  * supported on some hardware types, or a button might actually be a gpio jumper
  * for now.
  */
+/**
+ * 类似于 openhd_led，openhd_buttons 抽象了与按钮相关的硬件差异。
+ * （或者类似按钮的东西）某些功能可能在某些硬件类型上不受支持，
+ * 或者一个按钮实际上现在可能只是一个 GPIO 跳线。
+ */
 class ButtonManager {
- public:
-  static ButtonManager& instance();
-  /**
-   * Called once at boot. Returns true if the button refering to the
-   * 'Clean all settings / reset openhd core' functionality is pressed
-   */
-  bool user_wants_reset_openhd_core();
+   public:
+    static ButtonManager& instance();
+    /**
+     * Called once at boot. Returns true if the button refering to the
+     * 'Clean all settings / reset openhd core' functionality is pressed
+     */
+    /**
+     * 在启动时调用一次。如果与“清除所有设置 / 重置 OpenHD 核心”功能相关的按钮被按下，则返回 true。
+     */
+    bool user_wants_reset_openhd_core();
 
- private:
-  explicit ButtonManager() = default;
+   private:
+    explicit ButtonManager() = default;
 };
 
 }  // namespace openhd

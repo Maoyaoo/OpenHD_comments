@@ -38,6 +38,11 @@
  * discover USB cameras, for the rest, be lazy and rely on the user setting the
  * camera.
  */
+/**
+ * 我们曾尝试发现 CSI 摄像头，但由于当前主平台（RPI）的状态，
+ * 这实际上是不可行的且存在 bug。因此，我们只会发现 USB 摄像头，
+ * 对于其他摄像头，则采用懒加载，依赖用户设置摄像头。
+ */
 class DCameras {
  public:
   struct DiscoveredUSBCamera {
