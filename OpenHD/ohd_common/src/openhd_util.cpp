@@ -49,11 +49,13 @@ std::string OHDUtil::to_uppercase(std::string input) {
 }
 
 int OHDUtil::run_command(const std::string& command, const std::vector<std::string>& args, bool print_debug) {
+    // 生成完整命令字符串
     const auto command_with_args = create_command_with_args(command, args);
     if (print_debug) {
         openhd::log::get_default()->debug("run command begin [{}]", command_with_args);
     }
     // https://man7.org/linux/man-pages/man3/system.3.html
+    // 执行系统命令
     const auto ret = std::system(command_with_args.c_str());
     // openhd::log::get_default()->debug("return code:{}",ret);
     if (ret < 0) {
@@ -344,7 +346,7 @@ std::string OHDUtil::int_as_string(int number) {
     ss << number;
     return ss.str();
 }
-
+// 将一个密码字符串转换为“隐藏”形式，显示密码的第一个字符，其他字符用星号 * 替代。
 std::string OHDUtil::password_as_hidden_str(const std::string& pw) {
     // Show first character and * for the rest
     std::stringstream ss;
@@ -356,6 +358,7 @@ std::string OHDUtil::password_as_hidden_str(const std::string& pw) {
     }
     return ss.str();
 }
+
 std::string OHDUtil::bytes_as_string(const uint8_t* data, int data_len) {
     std::stringstream ss;
     ss << "[";
