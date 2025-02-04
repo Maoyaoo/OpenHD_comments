@@ -43,11 +43,13 @@ class GroundTelemetry;
 
 /**
  * This class holds either a Air telemetry or Ground Telemetry instance.
+ * 此类包含一个空中（Air）遥测或地面（Ground）遥测实例。
  */
 /**
  * 此类包含一个空中遥测实例或地面遥测实例。
  */
 class OHDTelemetry {
+<<<<<<< HEAD
    public:
     OHDTelemetry(OHDProfile profile1, bool enableExtendedLogging = false);
     OHDTelemetry(const OHDTelemetry&) = delete;
@@ -108,6 +110,72 @@ class OHDTelemetry {
     bool m_loop_thread_terminate = false;
     const OHDProfile m_profile;
     const bool m_enableExtendedLogging;
+=======
+ public:
+  OHDTelemetry(OHDProfile profile1, bool enableExtendedLogging = false);
+  OHDTelemetry(const OHDTelemetry&) = delete;
+  OHDTelemetry(const OHDTelemetry&&) = delete;
+  ~OHDTelemetry();
+  [[nodiscard]] std::string createDebug() const;
+  // Settings and statistics. Other modules (e.g. video, interface) use the
+  // mavlink settings provided by OHD Telemetry. However, we do not have code
+  // dependencies directly between these modules, to allow independent testing
+  // without telemetry and to keep the functionalities seperated. All modules
+  // other than camera share the same settings component for now. Note that the
+  // settings are still experiencing changes / are not finalized, e.g. we might
+  // introduce different settings components for different OHD modules if
+  // viable.
+  // 设置和统计信息。其他模块（例如视频、接口）使用 OHD Telemetry 提供的
+  // MAVLink设置。
+  // 然而，这些模块之间没有直接的代码依赖关系，以便允许在没有遥测的情况下进行独立测试，并保持功能的分离。
+  // 除摄像头外，所有模块目前共享相同的设置组件。
+  // 请注意，这些设置仍在经历变化/尚未最终确定，例如，如果可行，我们可能为不同的
+  // OHD 模块引入不同的设置组件。
+  void add_settings_generic(const std::vector<openhd::Setting>& settings) const;
+
+  // This is confusing, but there is no way around (keyword: invariant
+  // settings), since we add the settings one at a time as we create the other
+  // modules (e.g. interface, video) sequentially one at a time in the OHD
+  // main.cpp file. Note that without calling this function, no ground station
+  // will see any settings, even though they are already added.
+  // 这可能让人困惑，但这是无法避免的（关键词：不变量设置）。
+  // 因为我们在 OHD 的 main.cpp
+  // 文件中按顺序逐一创建其他模块（例如接口、视频）时，会逐一添加这些设置。
+  // 请注意，如果不调用此函数，即使这些设置已经被添加，地面站也无法看到任何设置。
+  void settings_generic_ready() const;
+
+  // Cameras get their own component ID, other than the "rest" which shares the
+  // same component id for simplicity. Note, at some point it might make sense
+  // to also use its own component id for OHD interface
+  // 摄像头有自己独立的组件 ID，而“其余部分”为了简化共享相同的组件 ID。
+  // 注意，在某些情况下，为 OHD 接口也使用其自己的组件 ID 可能是有意义的。
+  void add_settings_camera_component(
+      int camera_index, const std::vector<openhd::Setting>& settings) const;
+
+  // OHDTelemetry is agnostic of the type of transmission between air and ground
+  // and also agnostic weather this link exists or not (since it is already
+  // using a lossy link).
+  // OHDTelemetry 对空地之间的传输类型是无感知的，
+  // 并且对这个链路是否存在也是无感知的（因为它已经使用了一个有损链路）。
+  void set_link_handle(std::shared_ptr<OHDLink> link);
+
+ private:
+  // only either one of them both is active at a time.
+  // 在任何时候，只有它们其中之一是激活的
+
+  // active when air
+  std::unique_ptr<AirTelemetry> m_air_telemetry;
+  // active when ground
+  std::unique_ptr<GroundTelemetry> m_ground_telemetry;
+
+  // Main telemetry thread. Note that the endpoints also might have their own
+  // Receive threads
+  // 主遥测线程。注意，端点可能也有它们自己的接收线程。
+  std::unique_ptr<std::thread> m_loop_thread;
+  bool m_loop_thread_terminate = false;
+  const OHDProfile m_profile;
+  const bool m_enableExtendedLogging;
+>>>>>>> 4a08f20e494858dca8eb7dabad713f7246c726dc
 };
 
 #endif  // OPENHD_OHDTELEMETRY_H

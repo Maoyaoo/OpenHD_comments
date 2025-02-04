@@ -268,7 +268,7 @@ int main(int argc, char* argv[]) {
     openhd::LEDManager::instance().set_status_loading();
 
     // Generate the keys and delete pw if needed
-    // 生成密钥并在需要时删除密码
+    // 生成密钥且写入文件，并在需要时删除密码
     OHDInterface::generate_keys_from_pw_if_exists_and_delete();
 
     // Parse the program arguments
@@ -283,6 +283,7 @@ int main(int argc, char* argv[]) {
     // (kinda) and print warning if yes.
     // 不保证准确，但总比没有检查好，检查 OpenHD 是否已经在运行
     // （某种程度上），如果是的话打印警告。
+    //写入运行文件
     openhd::check_currently_running_file_and_write();
 
     // Create and link all the OpenHD modules.
@@ -294,7 +295,7 @@ int main(int argc, char* argv[]) {
         if (options.reset_all_settings) {
             openhd::clean_all_settings();
         }
-        // 用户硬件使能清楚配置
+        // 用户硬件使能清除配置
         if (openhd::ButtonManager::instance().user_wants_reset_openhd_core()) {
             openhd::clean_all_settings();
         }
@@ -304,7 +305,12 @@ int main(int argc, char* argv[]) {
         // 配置文件不再依赖于发现的摄像头数量，
         // 但如果我们是空中单元，至少有一个摄像头；如果没有找到摄像头，则使用软件模式
         const auto profile = DProfile::discover(options.run_as_air);
+<<<<<<< HEAD
         write_profile_manifest(profile);  // 写入配置文件清单
+=======
+        //写入配置文件（天空还是地面端，还有uuid）
+        write_profile_manifest(profile);
+>>>>>>> 4a08f20e494858dca8eb7dabad713f7246c726dc
 
         // we need to start QOpenHD when we are running as ground, or stop / disable
         // it when we are running as air. can be disabled for development purposes.
@@ -329,7 +335,7 @@ int main(int argc, char* argv[]) {
         // to talk to the camera streams to reduce the bitrate
         // 创建全局操作处理程序，允许 OpenHD 模块之间进行通信，例如，当 ohd_interface 中的 RF 链接需要
         // 与摄像头流进行通信以降低比特率时。
-        openhd::LinkActionHandler::instance();
+        openhd::LinkActionHandler::instance();//实例化
 
         // We start ohd_telemetry as early as possible, since even without a link
         // (transmission) it still picks up local log message(s) and forwards them

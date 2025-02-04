@@ -41,18 +41,31 @@
 // between the subbmodules directly (other than that they all depend on
 // ohd_common) we solve this issue by exposing action handlers as singletons
 // here.
+<<<<<<< HEAD
 // 此类的存在是为了处理当一个 OpenHD 模块需要与另一个模块通信时的罕见情况。
 // 例如，无线链路模块（ohd_interface）可能会请求降低编码器的比特率（ohd_video）。
 // 由于我们在子模块之间没有直接的代码依赖（除了它们都依赖于 ohd_common），
 // 我们通过在这里将操作处理程序暴露为单例来解决此问题。
+=======
+// 此类的存在是为了解决少数情况下一个 OpenHD 模块需要与另一个模块通信的情况。
+// 例如，wb 链路（ohd_interface）可能会请求降低编码器比特率（ohd_video）。
+// 由于子模块之间没有直接的代码依赖（除了它们都依赖于 ohd_common），
+// 我们通过在此处将操作处理程序公开为单例来解决此问题。
+>>>>>>> 4a08f20e494858dca8eb7dabad713f7246c726dc
 namespace openhd {
 
 // In a few places inside openhd we need to react to changes on the FC arming
 // state. Here one can register / unregister a cb that is called whenever the
 // arming state changes The default arming state is disarmed
+<<<<<<< HEAD
 // 在 OpenHD 内部的某些地方，我们需要对飞行控制器（FC）的解锁状态变化作出反应。
 // 在这里，可以注册/注销一个回调函数（cb），该回调函数会在解锁状态发生变化时被调用。
 // 默认的解锁状态是“未解锁”（disarmed）。
+=======
+// 在 OpenHD 的某些地方，我们需要对飞控（FC）解锁状态的变化作出反应。
+// 在这里，可以注册/注销一个回调函数，该回调函数会在解锁状态发生变化时被调用。
+// 默认的解锁状态是未解锁（disarmed）。
+>>>>>>> 4a08f20e494858dca8eb7dabad713f7246c726dc
 class ArmingStateHelper {
    public:
     ArmingStateHelper() = default;
@@ -94,6 +107,7 @@ class ArmingStateHelper {
 
 // In (only one) place right now we need to react to changes on the RC channels
 // the FC reports
+<<<<<<< HEAD
 // 目前仅在（唯一一个）地方，我们需要对飞行控制器（FC）报告的遥控（RC）通道变化作出反应
 class FCRcChannelsHelper {
    public:
@@ -111,6 +125,26 @@ class FCRcChannelsHelper {
     // 在 Ardupilot 上运行良好，因为它默认会广播正确的遥测消息。
     void update_rc_channels(const std::array<int, 18>& rc_channels);
     void action_on_any_rc_channel_register(ACTION_ON_ANY_RC_CHANNEL_CB cb);
+=======
+// 目前（只有一个地方）我们需要对飞控（FC）报告的遥控器（RC）通道的变化作出反应。
+class FCRcChannelsHelper {
+ public:
+  FCRcChannelsHelper() = default;
+  FCRcChannelsHelper(const FCRcChannelsHelper&) = delete;
+  FCRcChannelsHelper(const FCRcChannelsHelper&&) = delete;
+  static FCRcChannelsHelper& instance();
+  typedef std::function<void(const std::array<int, 18>& rc_channels)>
+      ACTION_ON_ANY_RC_CHANNEL_CB;
+  // called every time a rc channel value(s) mavlink packet is received from the
+  // FC (regardless if there was an actual change on any of the channels or not)
+  // Works well on Ardupilot, which broadcasts the proper telem message by
+  // default
+  // 每次从飞控（FC）接收到包含遥控器（RC）通道值的 MAVLink 数据包时调用
+  // （无论任意通道是否发生了实际变化）。
+  // 该功能在 Ardupilot 上运行良好，因为它默认会广播正确的遥测消息。
+  void update_rc_channels(const std::array<int, 18>& rc_channels);
+  void action_on_any_rc_channel_register(ACTION_ON_ANY_RC_CHANNEL_CB cb);
+>>>>>>> 4a08f20e494858dca8eb7dabad713f7246c726dc
 
    private:
     std::shared_ptr<ACTION_ON_ANY_RC_CHANNEL_CB> m_action_rc_channel = nullptr;
@@ -158,6 +192,7 @@ class LinkActionHandler {
         }
     }
 
+<<<<<<< HEAD
    public:
     // checking both 2G and 5G channels takes really long, but in rare cases might
     // be wanted by the user checking both 20Mhz and 40Mhz (instead of only either
@@ -168,6 +203,18 @@ class LinkActionHandler {
         uint32_t channels_to_scan = 0;
     };
     std::function<bool(ScanChannelsParam)> wb_cmd_scan_channels = nullptr;
+=======
+ public:
+  // checking both 2G and 5G channels takes really long, but in rare cases might
+  // be wanted by the user checking both 20Mhz and 40Mhz (instead of only either
+  // of them both) also duplicates the scan time
+  // 检查 2G 和 5G 频段的通道会耗费很长时间，但在少数情况下可能是用户所需要的。
+  // 同时检查 20MHz 和 40MHz（而不是仅检查其中之一）也会使扫描时间加倍。
+  struct ScanChannelsParam {
+    uint32_t channels_to_scan = 0;
+  };
+  std::function<bool(ScanChannelsParam)> wb_cmd_scan_channels = nullptr;
+>>>>>>> 4a08f20e494858dca8eb7dabad713f7246c726dc
 
    public:
     // Cleanup, set all lambdas that handle things to nullptr
@@ -183,6 +230,7 @@ class LinkActionHandler {
     std::shared_ptr<ACTION_REQUEST_BITRATE_CHANGE> m_action_request_bitrate_change = nullptr;
     std::shared_ptr<openhd::link_statistics::STATS_CALLBACK> m_link_statistics_callback = nullptr;
 
+<<<<<<< HEAD
    public:
     // Camera stats / info that is broadcast in regular intervals
     // Set by the camera streaming implementation - read by OHDMainComponent
@@ -215,6 +263,39 @@ class LinkActionHandler {
             std::lock_guard<std::mutex> lock(m_cam_info_cam2_mutex);
             m_cam_info_cam2 = camInfo;
         }
+=======
+ public:
+  // Camera stats / info that is broadcast in regular intervals
+  // Set by the camera streaming implementation - read by OHDMainComponent
+  // (mavlink broadcast) Simple read - write pattern (mutex is a bit overkill,
+  // but we don't have atomic struct)
+  // 定期广播的摄像头统计信息/状态。
+  // 由摄像头流媒体实现设置 - 由 OHDMainComponent 读取（通过 MAVLink 广播）。
+  // 简单的读写模式（使用互斥锁稍显过度，但我们没有原子结构）。
+  struct CamInfo {
+    bool active = false;  // Do not send stats for a non-active camera
+    uint8_t cam_index = 0;
+    uint8_t cam_type = 0;
+    uint8_t cam_status = 0;
+    uint8_t air_recording_active = 0;
+    uint8_t encoding_format = 0;
+    uint16_t encoding_bitrate_kbits = 0;
+    uint8_t encoding_keyframe_interval = 0;
+    uint16_t stream_w = 0;
+    uint16_t stream_h = 0;
+    uint16_t stream_fps = 0;
+    uint8_t supports_variable_bitrate = 0;
+    uint8_t qp_max = 0;
+    uint8_t qp_min = 0;
+  };
+  void set_cam_info(uint8_t cam_index, CamInfo camInfo) {
+    if (cam_index == 0) {
+      std::lock_guard<std::mutex> lock(m_cam_info_cam1_mutex);
+      m_cam_info_cam1 = camInfo;
+    } else {
+      std::lock_guard<std::mutex> lock(m_cam_info_cam2_mutex);
+      m_cam_info_cam2 = camInfo;
+>>>>>>> 4a08f20e494858dca8eb7dabad713f7246c726dc
     }
     void set_cam_info_bitrate(uint8_t cam_index, uint16_t bitrate_kbits) {
         if (cam_index == 0) {
@@ -329,6 +410,7 @@ class LinkActionHandler {
     std::atomic_uint16_t m_wifi_hotspot_frequency = 0;
     std::atomic_uint8_t m_ethernet_hotspot_state = 0;
 };
+
 
 class TerminateHelper {
    public:
