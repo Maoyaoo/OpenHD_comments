@@ -304,7 +304,7 @@ int main(int argc, char* argv[]) {
         // 配置文件不再依赖于发现的摄像头数量，
         // 但如果我们是空中单元，至少有一个摄像头；如果没有找到摄像头，则使用软件模式
         const auto profile = DProfile::discover(options.run_as_air);
-        write_profile_manifest(profile);
+        write_profile_manifest(profile);  // 写入配置文件清单
 
         // we need to start QOpenHD when we are running as ground, or stop / disable
         // it when we are running as air. can be disabled for development purposes.
@@ -317,7 +317,7 @@ int main(int argc, char* argv[]) {
         if (!options.no_qopenhd_autostart) {
             if (!openhd::load_config().GEN_NO_QOPENHD_AUTOSTART && !OHDPlatform::instance().is_x20()) {
                 if (!profile.is_air) {
-                    OHDUtil::run_command("systemctl", {"start", "qopenhd"});
+                    OHDUtil::run_command("systemctl", {"start", "qopenhd"});  // 执行一个系统命令
                 } else {
                     OHDUtil::run_command("systemctl", {"stop", "qopenhd"});
                 }

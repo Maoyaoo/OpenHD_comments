@@ -48,6 +48,7 @@ std::string OHDUtil::to_uppercase(std::string input) {
     return input;
 }
 
+// 执行一个系统命令，并支持调试日志输出。
 int OHDUtil::run_command(const std::string& command, const std::vector<std::string>& args, bool print_debug) {
     const auto command_with_args = create_command_with_args(command, args);
     if (print_debug) {
@@ -216,6 +217,7 @@ void OHDUtil::rtrim(std::string& s) {
     s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch) { return !std::isspace(ch); }).base(), s.end());
 }
 
+// 将 command 和 args 组合成一个完整的命令字符串
 std::string OHDUtil::create_command_with_args(const std::string& command, const std::vector<std::string>& args) {
     std::stringstream ss;
     ss << command;

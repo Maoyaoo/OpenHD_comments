@@ -30,14 +30,15 @@
 // Abstraction for sending / receiving data on/from the link between air and
 // ground unit
 class WBEndpoint : public MEndpoint {
- public:
-  explicit WBEndpoint(std::shared_ptr<OHDLink> link, std::string TAG);
-  ~WBEndpoint();
+   public:
+    //  std::shared_ptr<OHDLink> link：这是一个智能指针（std::shared_ptr），它指向一个 OHDLink 对象。OHDLink 可能代表空中与地面之间的通信链路
+    explicit WBEndpoint(std::shared_ptr<OHDLink> link, std::string TAG);
+    ~WBEndpoint();
 
- private:
-  std::shared_ptr<OHDLink> m_link_handle;
-  bool sendMessagesImpl(const std::vector<MavlinkMessage>& messages) override;
-  std::mutex m_send_messages_mutex;
+   private:
+    std::shared_ptr<OHDLink> m_link_handle;  // 指向一个 OHDLink 对象。这个指针用来存储和管理空中与地面之间通信链路的实例
+    bool sendMessagesImpl(const std::vector<MavlinkMessage>& messages) override;  // 实现消息的发送功能
+    std::mutex m_send_messages_mutex;  // 这是一个互斥锁，用于在多线程环境下同步对发送消息操作的访问。保证在多线程环境中不会发生竞争条件。
 };
 
 #endif  // OPENHD_OPENHD_OHD_TELEMETRY_SRC_ENDPOINTS_WBENDPOINT_H_
