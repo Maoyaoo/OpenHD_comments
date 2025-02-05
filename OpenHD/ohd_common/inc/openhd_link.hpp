@@ -59,137 +59,144 @@
  *必须支持以下内容：
  *从空中到地面及反向发送遥测数据
  *=> 1 个双向（即空对地和地对空）但（推荐）有损的链接（因为 mavlink
- *处理数据包丢失/重传等） 从空中到地面发送视频数据，推荐有 2
- *个实例（主视频和次视频），至少需要 1 个
+ *处理数据包丢失/重传等） 从空中到地面发送视频数据，推荐有 2个实例（主视频和次视频），至少需要 1 个
  *=> 2 个单向（推荐有损，但采用 FEC 保护）链接，用于主视频和次视频从空到地的传输
  *一般来说，空中单元和地面单元各自应该有一个 ohd_link 实例。
  */
 class OHDLink {
- public:
-  typedef std::function<void(std::shared_ptr<std::vector<uint8_t>> data)>
-      ON_TELE_DATA_CB;
+   public:
+    typedef std::function<void(std::shared_ptr<std::vector<uint8_t>> data)> ON_TELE_DATA_CB;
 
- public:
-  // --- Telemetry air and ground both receive and send --------
-  // Telemetry TX special - retransmission(s) - duplicate specific mavlink
-  // messages that are going from gnd to air (or vice versa) to increase
-  // reliability.
-  struct TelemetryTxPacket {
-    std::shared_ptr<std::vector<uint8_t>> data;
-    int n_injections = 1;
-  };
-  /**
-   * valid on both air and ground instance
-   * send telemetry data to the ground if air unit and vice versa.
-   */
-  virtual void transmit_telemetry_data(TelemetryTxPacket packet) = 0;
+   public:
+    // --- Telemetry air and ground both receive and send --------
+    // Telemetry TX special - retransmission(s) - duplicate specific mavlink
+    // messages that are going from gnd to air (or vice versa) to increase
+    // reliability.
+    // --- 空中和地面均接收和发送遥测 --------
+    // 遥测TX特殊 - 重传 - 针对从地面到空中（或反之）传输的特定mavlink消息进行重复发送，以提高可靠性。
+    struct TelemetryTxPacket {
+        std::shared_ptr<std::vector<uint8_t>> data;
+        int n_injections = 1;
+    };
 
-  /**
-   * valid on both air and ground instance
-   * called every time telemetry data is received - used by ohd_telemetry to
-   * react to incoming packets
-   * @param data the received message
-   */
-  void on_receive_telemetry_data(std::shared_ptr<std::vector<uint8_t>> data) {
-    auto tmp = m_tele_data_cb;
-    if (tmp) {
-      auto& cb = *tmp;
-      cb(std::move(data));
+    /**
+     * valid on both air and ground instance
+     * send telemetry data to the ground if air unit and vice versa.
+     */
+    /**
+     * 在空中和地面实例中都有效
+     * 如果是空中单元，则将遥测数据发送到地面，反之亦然。
+     */
+    virtual void transmit_telemetry_data(TelemetryTxPacket packet) = 0;
+
+    /**
+     * valid on both air and ground instance
+     * called every time telemetry data is received - used by ohd_telemetry to
+     * react to incoming packets
+     * @param data the received message
+     */
+    /**
+     * 在空中和地面实例中都有效
+     * 每次接收到遥测数据时被调用 - 由ohd_telemetry使用，以响应接收到的数据包
+     * @param data 接收到的消息
+     */
+    void on_receive_telemetry_data(std::shared_ptr<std::vector<uint8_t>> data) {
+        auto tmp = m_tele_data_cb;
+        if (tmp) {
+            auto& cb = *tmp;
+            cb(std::move(data));
+        }
     }
-  }
-  void register_on_receive_telemetry_data_cb(const ON_TELE_DATA_CB& cb) {
-    if (cb == nullptr) {
-      m_tele_data_cb = nullptr;
-      return;
-    }
-    m_tele_data_cb = std::make_shared<ON_TELE_DATA_CB>(cb);
-  }
 
- public:
-  typedef std::function<void(int stream_index, const uint8_t* data,
-                             int data_len)>
-      ON_VIDEO_DATA_CB;
-  // -------- video, air sends, ground receives ---------
-  /**
-   * Video, unidirectional
-   * only valid on air (transmit)
-   * @param stream_index 0 -> primary video stream, 1 -> secondary video stream
-   * @param fragmented_video_frame the "frame" to transmit
-   */
-  virtual void transmit_video_data(
-      int stream_index,
-      const openhd::FragmentedVideoFrame& fragmented_video_frame) = 0;
-
-  // Called by the wifibroadcast receiver on the ground unit only
-  void on_receive_video_data(int stream_index, const uint8_t* data,
-                             int data_len) {
-    auto tmp = m_video_data_cb;
-    if (tmp) {
-      auto& cb = *tmp;
-      cb(stream_index, data, data_len);
+    void register_on_receive_telemetry_data_cb(const ON_TELE_DATA_CB& cb) {
+        if (cb == nullptr) {
+            m_tele_data_cb = nullptr;
+            return;
+        }
+        m_tele_data_cb = std::make_shared<ON_TELE_DATA_CB>(cb);
     }
-  }
-  void register_on_receive_video_data_cb(const ON_VIDEO_DATA_CB& cb) {
-    if (cb == nullptr) {
-      m_video_data_cb = nullptr;
-      return;
-    }
-    m_video_data_cb = std::make_shared<ON_VIDEO_DATA_CB>(cb);
-  }
 
- private:
-  std::shared_ptr<ON_TELE_DATA_CB> m_tele_data_cb;
-  std::shared_ptr<ON_VIDEO_DATA_CB> m_video_data_cb;
+   public:
+    typedef std::function<void(int stream_index, const uint8_t* data, int data_len)> ON_VIDEO_DATA_CB;
 
- public:
-  typedef std::function<void(const uint8_t* data, int data_len)>
-      ON_AUDIO_DATA_RX_CB;
-  ON_AUDIO_DATA_RX_CB m_audio_data_rx_cb = nullptr;
-  virtual void transmit_audio_data(const openhd::AudioPacket& audio_packet) = 0;
-  void on_receive_audio_data(const uint8_t* data, int data_len) {
-    if (m_audio_data_rx_cb) {
-      m_audio_data_rx_cb(data, data_len);
+    // -------- video, air sends, ground receives ---------
+    /**
+     * Video, unidirectional
+     * only valid on air (transmit)
+     * @param stream_index 0 -> primary video stream, 1 -> secondary video stream
+     * @param fragmented_video_frame the "frame" to transmit
+     */
+    // -------- 视频，空中发送，地面接收 ---------
+    /**
+     * 视频，单向传输
+     * 仅在空中有效（发送）
+     * @param stream_index 0 -> 主视频流，1 -> 次视频流
+     * @param fragmented_video_frame 要传输的“帧”
+     */
+    virtual void transmit_video_data(int stream_index, const openhd::FragmentedVideoFrame& fragmented_video_frame) = 0;
+
+    // Called by the wifibroadcast receiver on the ground unit only
+    // 仅由地面单元上的wifibroadcast接收器调用
+    void on_receive_video_data(int stream_index, const uint8_t* data, int data_len) {
+        auto tmp = m_video_data_cb;
+        if (tmp) {
+            auto& cb = *tmp;
+            cb(stream_index, data, data_len);
+        }
     }
-  }
+
+    void register_on_receive_video_data_cb(const ON_VIDEO_DATA_CB& cb) {
+        if (cb == nullptr) {
+            m_video_data_cb = nullptr;
+            return;
+        }
+        m_video_data_cb = std::make_shared<ON_VIDEO_DATA_CB>(cb);
+    }
+
+   private:
+    std::shared_ptr<ON_TELE_DATA_CB> m_tele_data_cb;
+    std::shared_ptr<ON_VIDEO_DATA_CB> m_video_data_cb;
+
+   public:
+    typedef std::function<void(const uint8_t* data, int data_len)> ON_AUDIO_DATA_RX_CB;
+    ON_AUDIO_DATA_RX_CB m_audio_data_rx_cb = nullptr;
+    virtual void transmit_audio_data(const openhd::AudioPacket& audio_packet) = 0;
+    void on_receive_audio_data(const uint8_t* data, int data_len) {
+        if (m_audio_data_rx_cb) {
+            m_audio_data_rx_cb(data, data_len);
+        }
+    }
 };
 
 class DummyDebugLink : public OHDLink {
- public:
-  openhd::ON_ENCODE_FRAME_CB m_opt_frame_cb = nullptr;
-  explicit DummyDebugLink() {
-    m_console_tele = openhd::log::create_or_get("tele");
-    m_console_video = openhd::log::create_or_get("video");
-    m_console_audio = openhd::log::create_or_get("audio");
-  }
-  void transmit_telemetry_data(TelemetryTxPacket packet) override {
-    m_console_tele->debug("Got {} telemetry fragments", packet.data->size());
-  }
-  // Called by the camera stream on the air unit only
-  // transmit video data via wifibradcast
-  // 仅由空中单元上的摄像头流调用
-  // 通过 wifibroadcast 传输视频数据
-  void transmit_video_data(
-      int stream_index,
-      const openhd::FragmentedVideoFrame& fragmented_video_frame) override {
-    int64_t total_bytes = 0;
-    for (const auto& fragment : fragmented_video_frame.rtp_fragments) {
-      total_bytes += fragment->size();
+   public:
+    openhd::ON_ENCODE_FRAME_CB m_opt_frame_cb = nullptr;
+    explicit DummyDebugLink() {
+        m_console_tele = openhd::log::create_or_get("tele");
+        m_console_video = openhd::log::create_or_get("video");
+        m_console_audio = openhd::log::create_or_get("audio");
     }
-    m_console_video->debug("Got Frame. Fragments:{} total: {}Bytes",
-                           fragmented_video_frame.rtp_fragments.size(),
-                           total_bytes);
-    if (m_opt_frame_cb) {
-      m_opt_frame_cb(stream_index, fragmented_video_frame);
+    void transmit_telemetry_data(TelemetryTxPacket packet) override { m_console_tele->debug("Got {} telemetry fragments", packet.data->size()); }
+    // Called by the camera stream on the air unit only
+    // transmit video data via wifibradcast
+    // 仅由空中单元上的摄像头流调用
+    // 通过 wifibroadcast 传输视频数据
+    void transmit_video_data(int stream_index, const openhd::FragmentedVideoFrame& fragmented_video_frame) override {
+        int64_t total_bytes = 0;
+        for (const auto& fragment : fragmented_video_frame.rtp_fragments) {
+            total_bytes += fragment->size();
+        }
+        m_console_video->debug("Got Frame. Fragments:{} total: {}Bytes", fragmented_video_frame.rtp_fragments.size(), total_bytes);
+        if (m_opt_frame_cb) {
+            m_opt_frame_cb(stream_index, fragmented_video_frame);
+        }
     }
-  }
-  void transmit_audio_data(const openhd::AudioPacket& audio_packet) override {
-    m_console_audio->debug("Got audio data {}", audio_packet.data->size());
-  }
+    void transmit_audio_data(const openhd::AudioPacket& audio_packet) override { m_console_audio->debug("Got audio data {}", audio_packet.data->size()); }
 
- private:
-  std::shared_ptr<spdlog::logger> m_console_video;
-  std::shared_ptr<spdlog::logger> m_console_tele;
-  std::shared_ptr<spdlog::logger> m_console_audio;
+   private:
+    std::shared_ptr<spdlog::logger> m_console_video;
+    std::shared_ptr<spdlog::logger> m_console_tele;
+    std::shared_ptr<spdlog::logger> m_console_audio;
 };
 
 #endif  // OPENHD_OPENHD_OHD_COMMON_OHD_LINK_HPP_
