@@ -64,13 +64,17 @@ bool is_microhard_device_present() {
 
 OHDInterface::OHDInterface(OHDProfile profile1)
     : m_profile(std::move(profile1)) {
+      // 1. 创建日志对象
   m_console = openhd::log::create_or_get("interface");
   assert(m_console);
+  // 2. 初始化成员变量
   m_monitor_mode_cards = {};
   m_opt_hotspot_card = std::nullopt;
+  // 3. 加载配置并检查 Microhard 设备
   const auto config = openhd::load_config();
   bool microhard_device_present = is_microhard_device_present();
 
+  // 4. 检查以太网连接
   if (OHDFilesystemUtil::exists(std::string(getConfigBasePath()) +
                                 "ethernet.txt")) {
     m_ethernet_link = std::make_shared<EthernetLink>(m_profile);
@@ -78,14 +82,17 @@ OHDInterface::OHDInterface(OHDProfile profile1)
     return;
   }
 
+  // 5. 检查 Microhard 设备
   if (microhard_device_present) {
     m_microhard_link = std::make_shared<MicrohardLink>(m_profile);
     m_console->warn("mc found");
     return;
   }
 
+  // 6. 发现并处理 Wi-Fi 网卡
   DWifiCards::main_discover_an_process_wifi_cards(
       config, m_profile, m_console, m_monitor_mode_cards, m_opt_hotspot_card);
+  // 7. 输出 Wi-Fi 网卡信息
   m_console->debug("monitor_mode card(s):{}",
                    debug_cards(m_monitor_mode_cards));
   if (m_opt_hotspot_card.has_value()) {
@@ -95,7 +102,10 @@ OHDInterface::OHDInterface(OHDProfile profile1)
   }
   // We don't have at least one card for monitor mode, which means we cannot
   // instantiate wb_link (no wifibroadcast connectivity at all)
+  // 8. 检查是否有监控模式网卡
   if (m_monitor_mode_cards.empty()) {
+    // 如果没有支持监控模式的 Wi-Fi 网卡，输出警告日志并设置错误状态。
+    // 提示用户重启设备。
     m_console->warn(
         "Cannot start ohd_interface, no wifi card for monitor mode");
     const std::string message_for_user = "No WiFi card found, please reboot";
@@ -106,15 +116,20 @@ OHDInterface::OHDInterface(OHDProfile profile1)
     // completely wrong. However, as an Ground pi, we can still run QOpenHD and
     // OpenHD, just it will never connect to an Air PI
   } else {
+    // 9. 初始化 Wi-Fi 广播链路
     // Set the card(s) we have into monitor mode
+    // 如果有支持监控模式的 Wi-Fi 网卡，将其设置为监控模式。
     openhd::wb::takeover_cards_monitor_mode(m_monitor_mode_cards, m_console);
+    // 创建一个 WBLink 对象，用于管理 Wi-Fi 广播链路。
     m_wb_link = std::make_shared<WBLink>(m_profile, m_monitor_mode_cards);
   }
   // The USB tethering listener is always enabled on ground - it doesn't
   // interfere with anything
+  // 11. 初始化以太网管理器（仅地面设备）
   if (m_profile.is_ground()) {
     // The USB tethering listener is always enabled on ground - it doesn't
     // interfere with anything
+    // 如果设备是地面设备，创建一个 EthernetManager 对象，并异步初始化以太网连接。
     m_usb_tether_listener = std::make_unique<USBTetherListener>();
   }
   // Ethernet - optional, only on ground
@@ -125,10 +140,12 @@ OHDInterface::OHDInterface(OHDProfile profile1)
     // m_nw_settings.get_settings().ethernet_operating_mode
   }
   // Wi-Fi hotspot functionality if possible.
+  // 12. 初始化 Wi-Fi 热点功能
   if (m_opt_hotspot_card.has_value()) {
     if (WiFiClient::create_if_enabled()) {
       // Wifi client active
     } else {
+      // 如果 Wi-Fi 客户端未启用，创建一个 WifiHotspot 对象，并根据 Wi-Fi 广播链路的频率空间设置热点频率。
       const openhd::WifiSpace wb_frequency_space =
           (m_wb_link != nullptr)
               ? m_wb_link->get_current_frequency_channel_space()
@@ -141,10 +158,10 @@ OHDInterface::OHDInterface(OHDProfile profile1)
     }
   }
   // automatically disable Wi-Fi hotspot if FC is armed
+  // 自动禁用 Wi-Fi 热点（当飞控解锁时）
   if (m_wifi_hotspot) {
     auto cb = [this](bool armed) { update_wifi_hotspot_enable(); };
-    openhd::ArmingStateHelper::instance().register_listener("ohd_interface_wfi",
-                                                            cb);
+    openhd::ArmingStateHelper::instance().register_listener("ohd_interface_wfi",cb);
   }
   m_console->debug("OHDInterface::created");
 }

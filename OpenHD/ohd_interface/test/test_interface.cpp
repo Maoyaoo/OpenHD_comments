@@ -38,6 +38,10 @@
 // 3) You can now pipe test data into the "air instance" via UDP (e.g. into the
 // main stream video port) and listen with nc if any data arrives at the ground
 // instance.
+// 使用 test_interface：
+// 将其作为 "air" 运行在你想用作空中单元的设备上。
+// 将其作为 "ground" 运行在你想用作地面单元的设备上。
+// 现在你可以通过 UDP 将测试数据传输到 "air 实例"（例如，传输到主流视频端口），并使用 nc 监听地面实例是否收到数据。
 
 static const char optstr[] = "?s:b:";
 static const struct option long_options[] = {

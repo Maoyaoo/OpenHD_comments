@@ -122,6 +122,7 @@ struct WiFiCard {
   WiFiCardType type = WiFiCardType::UNKNOWN;
   // More info about a given wifi card - e.g. for rtl8812au, which
   // manufacturer produced the card (required for TX power levels)
+  // 关于给定 WiFi 卡（例如 rtl8812au）的更多信息 - 例如哪个制造商生产了该卡（获取 TX 功率水平所需）。
   uint8_t sub_type = 0;
   [[nodiscard]] bool supports_2GHz() const {
     return !supported_frequencies_2G.empty();

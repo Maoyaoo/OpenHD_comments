@@ -49,6 +49,11 @@ class EthernetLink;
  * on both air and ground with partially similar, partially different
  * functionalities.
  */
+/**
+ * 负责处理所有与网络相关的事务，例如 wifibroadcast、USB / 网络共享 / WiFi
+ * 热点等。 在 OpenHD
+ * 中，空中单元和地面单元都有一个此类的实例，功能部分相似，部分不同。
+ */
 class OHDInterface {
  public:
   /**
@@ -71,9 +76,15 @@ class OHDInterface {
    * then delete the password.txt file. Does nothing if no password.txt file
    * exists.
    */
+  /**
+   * 如果存在password.txt文件，从中生成密钥并存储，
+   * 然后删除password.txt文件。如果没有password.txt文件，则不执行任何操作。
+   */
   static void generate_keys_from_pw_if_exists_and_delete();
   // Agnostic of the link, even though r.n we only have a wifibroadcast
   // implementation (but this might change).
+  // 与链接无关，尽管目前我们只有wifibroadcast实现
+  // （但这可能会有所改变）。
   std::shared_ptr<OHDLink> get_link_handle();
 
  private:

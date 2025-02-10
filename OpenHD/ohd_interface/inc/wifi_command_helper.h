@@ -37,6 +37,10 @@
 // bit more compile-time safety but I don't think that's worth it - it would be
 // one more stack we need to test, and those commands used here are pretty much
 // guaranteed to be available on every linux system.
+// 注意：
+// 所有这些 `iw` 命令都使用 netlink 与 Linux 通信——理论上我们可以直接切换到使用 netlink
+//（例如参见 `wifi_command_helper2`），这样可能会获得一些编译时的安全性，但我不认为这是值得的——
+// 这会增加一个需要测试的组件栈，而这里使用的命令几乎可以保证在每个 Linux 系统中都可用。
 namespace wifi::commandhelper {
 
 // needed for enabling monitor mode

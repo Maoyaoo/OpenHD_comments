@@ -45,6 +45,11 @@
  * images, but the default raspbian images from pi foundation have it only
  * installed, but disabled by default (they'l use it eventually)
  */
+/*WiFi 热点是指在我们运行的设备上创建一个 WiFi 接入点。外部客户端，如在平板上运行的 QOpenHD，
+可以连接到该热点。请注意，WiFi 热点并未实现自动的视频和遥测转发——一方面，这种方法容易出错，
+另一方面，主动搜索连接设备及其 IP 是很难实现的。TCP mavlink（未来可能还包括视频）是这里的最佳选择。
+2022年11月4日更新：使用网络管理器——我们已经在 OpenHD 镜像中默认安装并启用了网络管理器，
+而树莓派基金会的默认 Raspbian 镜像仅安装了它，但默认是禁用的（他们最终会启用它）。 */
 class WifiHotspot {
  public:
   /**

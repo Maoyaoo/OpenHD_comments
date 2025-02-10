@@ -41,6 +41,7 @@ void openhd::set_config_file(const std::string& config_file_path) {
 static openhd::Config load_or_default() {
   try {
     openhd::Config ret{};
+    // 配置文件检查
     if (!OHDFilesystemUtil::exists(CONFIG_FILE_PATH)) {
       std::cerr << "WARN: No config file [" << CONFIG_FILE_PATH << "] used!"
                 << std::endl;
@@ -49,54 +50,59 @@ static openhd::Config load_or_default() {
       std::cout << "WARN: Advanced config file [" << CONFIG_FILE_PATH
                 << "] used!" << std::endl;
     }
+    // 使用 inih::INIReader 解析 INI 配置文件。
     inih::INIReader r{CONFIG_FILE_PATH};
 
     // Parse WiFi configuration
+    // WiFi 配置
     ret.WIFI_ENABLE_AUTODETECT =
-        r.Get<bool>("wifi", "WIFI_ENABLE_AUTODETECT", false);
+        r.Get<bool>("wifi", "WIFI_ENABLE_AUTODETECT", false);//是否自动检测 WiFi
     ret.WIFI_WB_LINK_CARDS =
-        r.GetVector<std::string>("wifi", "WIFI_WB_LINK_CARDS");
+        r.GetVector<std::string>("wifi", "WIFI_WB_LINK_CARDS");//WiFi 连接的设备列表
     ret.WIFI_WIFI_HOTSPOT_CARD =
-        r.Get<std::string>("wifi", "WIFI_WIFI_HOTSPOT_CARD", "");
+        r.Get<std::string>("wifi", "WIFI_WIFI_HOTSPOT_CARD", "");//WiFi 热点网卡
     ret.WIFI_MONITOR_CARD_EMULATE =
-        r.Get<bool>("wifi", "WIFI_MONITOR_CARD_EMULATE", false);
+        r.Get<bool>("wifi", "WIFI_MONITOR_CARD_EMULATE", false);//是否模拟 WiFi 监控模式
     ret.WIFI_FORCE_NO_LINK_BUT_HOTSPOT =
-        r.Get<bool>("wifi", "WIFI_FORCE_NO_LINK_BUT_HOTSPOT", false);
+        r.Get<bool>("wifi", "WIFI_FORCE_NO_LINK_BUT_HOTSPOT", false);//是否强制仅使用热点
     ret.WIFI_LOCAL_NETWORK_ENABLE =
-        r.Get<bool>("wifi", "WIFI_LOCAL_NETWORK_ENABLE", false);
+        r.Get<bool>("wifi", "WIFI_LOCAL_NETWORK_ENABLE", false);//是否启用本地 WiFi 网络
     ret.WIFI_LOCAL_NETWORK_SSID =
-        r.Get<std::string>("wifi", "WIFI_LOCAL_NETWORK_SSID", "");
+        r.Get<std::string>("wifi", "WIFI_LOCAL_NETWORK_SSID", "");//本地 WiFi 的 SSID 和密码
     ret.WIFI_LOCAL_NETWORK_PASSWORD =
         r.Get<std::string>("wifi", "WIFI_LOCAL_NETWORK_PASSWORD", "");
 
     // Parse Network configuration
+    // 网络配置
     ret.NW_ETHERNET_CARD =
-        r.Get<std::string>("network", "NW_ETHERNET_CARD", "");
+        r.Get<std::string>("network", "NW_ETHERNET_CARD", "");//使用的以太网网卡
     ret.NW_MANUAL_FORWARDING_IPS =
-        r.GetVector<std::string>("network", "NW_MANUAL_FORWARDING_IPS");
+        r.GetVector<std::string>("network", "NW_MANUAL_FORWARDING_IPS");//手动转发的 IP 列表
     ret.NW_FORWARD_TO_LOCALHOST_58XX =
-        r.Get<bool>("network", "NW_FORWARD_TO_LOCALHOST_58XX", false);
+        r.Get<bool>("network", "NW_FORWARD_TO_LOCALHOST_58XX", false);//是否将流量转发到 localhost:58XX 端口
 
     // Parse Ethernet link configuration
+    // 以太网连接配置
     std::cout << "WARN: Parsing Ethernet link configuration" << std::endl;
-    ret.GROUND_UNIT_IP = r.Get<std::string>("ethernet", "GROUND_UNIT_IP", "");
+    ret.GROUND_UNIT_IP = r.Get<std::string>("ethernet", "GROUND_UNIT_IP", "");//地面单元的 IP
     std::cout << "DEBUG: GROUND_UNIT_IP: " << ret.GROUND_UNIT_IP << std::endl;
-    ret.AIR_UNIT_IP = r.Get<std::string>("ethernet", "AIR_UNIT_IP", "");
+    ret.AIR_UNIT_IP = r.Get<std::string>("ethernet", "AIR_UNIT_IP", "");//空中单元的 IP
     std::cout << "DEBUG: AIR_UNIT_IP: " << ret.AIR_UNIT_IP << std::endl;
-    ret.VIDEO_PORT = r.Get<int>("ethernet", "VIDEO_PORT", 5000);
+    ret.VIDEO_PORT = r.Get<int>("ethernet", "VIDEO_PORT", 5000);//视频传输端口，默认 5000
     std::cout << "DEBUG: VIDEO_PORT: " << ret.VIDEO_PORT << std::endl;
-    ret.TELEMETRY_PORT = r.Get<int>("ethernet", "TELEMETRY_PORT", 5600);
+    ret.TELEMETRY_PORT = r.Get<int>("ethernet", "TELEMETRY_PORT", 5600);//遥测数据端口，默认 5600
     std::cout << "DEBUG: TELEMETRY_PORT: " << ret.TELEMETRY_PORT << std::endl;
 
     // Parse Ethernet link Microhard configuration
+    // Microhard 设备配置
     std::cout << "WARN: Parsing Ethernet link Microhard configuration"
               << std::endl;
     ret.DISABLE_MICROHARD_DETECTION =
-        r.Get<bool>("microhard", "DISABLE_MICROHARD_DETECTION", false);
+        r.Get<bool>("microhard", "DISABLE_MICROHARD_DETECTION", false);//是否禁用 Microhard 设备检测
     std::cout << "DEBUG: DISABLE_MICROHARD_DETECTION: "
               << ret.DISABLE_MICROHARD_DETECTION << std::endl;
-    ret.FORCE_MICROHARD = r.Get<bool>("microhard", "FORCE_MICROHARD", false);
-    std::cout << "DEBUG: FORCE_MICROHARD: " << ret.FORCE_MICROHARD << std::endl;
+    ret.FORCE_MICROHARD = r.Get<bool>("microhard", "FORCE_MICROHARD", false);//是否强制启用 Microhard
+    std::cout << "DEBUG: FORCE_MICROHARD: " << ret.FORCE_MICROHARD << std::endl;//Microhard 设备的登录信息
     ret.MICROHARD_USERNAME =
         r.Get<std::string>("microhard", "MICROHARD_USERNAME", "admin");
     std::cout << "DEBUG: MICROHARD_USERNAME: " << ret.MICROHARD_USERNAME
