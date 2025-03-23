@@ -30,29 +30,34 @@
 
 /**
  * Link implementation for microhard modules
- * 微硬件模块的链接实现
  */
 class MicrohardLink : public OHDLink {
    public:
     explicit MicrohardLink(OHDProfile profile);
-    void transmit_telemetry_data(TelemetryTxPacket packet) override;
-    void transmit_video_data(int stream_index, const openhd::FragmentedVideoFrame& fragmented_video_frame) override;
-    void transmit_audio_data(const openhd::AudioPacket& audio_packet) override;
+
+    // 实现 OHDLink 的虚函数
+    void transmit_telemetry_data(TelemetryTxPacket packet) override;                                                  // 传输遥测数据
+    void transmit_video_data(int stream_index, const openhd::FragmentedVideoFrame& fragmented_video_frame) override;  // 传输视频数据
+    void transmit_audio_data(const openhd::AudioPacket& audio_packet) override;                                       // 传输音频数据
 
     /**
-     * @return all mavlink settings, values might change depending on air/ground
-     * and/or the used hardware
-     * @return 所有的mavlink设置，值可能会根据空中/地面状态和/或使用的硬件发生变化
+     * 获取所有的 Mavlink 设置
+     * @return 返回所有设置的列表，值可能会根据空中/地面单元和使用的硬件而变化
      */
     std::vector<openhd::Setting> get_all_settings();
+
+    /**
+     * 监控网关信号强度
+     * @param gateway_ip 网关的 IP 地址
+     */
     static void monitor_gateway_signal_strength(const std::string& gateway_ip);
 
    private:
-    const OHDProfile m_profile;
-    std::unique_ptr<openhd::UDPForwarder> m_video_tx;
-    std::unique_ptr<openhd::UDPReceiver> m_video_rx;
+    const OHDProfile m_profile;                        // 当前设备的配置信息
+    std::unique_ptr<openhd::UDPForwarder> m_video_tx;  // 视频数据发送器
+    std::unique_ptr<openhd::UDPReceiver> m_video_rx;   // 视频数据接收器
     //
-    std::unique_ptr<openhd::UDPReceiver> m_telemetry_tx_rx;
+    std::unique_ptr<openhd::UDPReceiver> m_telemetry_tx_rx;  // 遥测数据收发器
 };
 
 #endif  // OPENHD_MICROHARD_LINK_H

@@ -32,6 +32,7 @@ VIDEO_PACKAGES="libgstreamer-plugins-base1.0-dev libv4l-dev"
 BUILD_PACKAGES="git build-essential autotools-dev automake libtool python3-pip autoconf apt-transport-https ruby-dev cmake"
 
 
+
 function install_pi_packages {
 PLATFORM_PACKAGES="libcamera-openhd"
 PLATFORM_PACKAGES_REMOVE="python3-libcamera libcamera0"

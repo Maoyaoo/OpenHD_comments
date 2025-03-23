@@ -1,6 +1,15 @@
 cmake_minimum_required(VERSION 3.16.3)
 project(OpenHD)
 
+# 设置交叉编译工具链
+set(CMAKE_SYSTEM_NAME Linux)
+set(CMAKE_SYSTEM_PROCESSOR arm)
+
+# 指定交叉编译工具链路径
+set(TOOLCHAIN_DIR /opt/rv1106_toolchain/arm-rockchip830-linux-uclibcgnueabihf/bin)
+set(CMAKE_C_COMPILER ${TOOLCHAIN_DIR}/arm-rockchip830-linux-uclibcgnueabihf-gcc)
+set(CMAKE_CXX_COMPILER ${TOOLCHAIN_DIR}/arm-rockchip830-linux-uclibcgnueabihf-g++)
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -46,5 +55,8 @@ if (HAVE_LIBATOMIC)
     target_link_libraries(openhd PRIVATE atomic)
 endif()
 
-# Install the OpenHD executable
-install(TARGETS openhd DESTINATION bin)
+# 设置输出目录到 release 文件夹
+set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/release)
+
+# 安装可执行文件到 release 文件夹
+install(TARGETS openhd DESTINATION ${CMAKE_SOURCE_DIR}/release)
